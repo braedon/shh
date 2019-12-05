@@ -32,9 +32,18 @@ def custom_default_error_hander(res):
     return body
 
 
-def construct_app(dao, **kwargs):
+def construct_app(dao,
+                  service_protocol, service_hostname,
+                  service_port, service_path,
+                  **kwargs):
     app = Bottle()
     app.default_error_handler = custom_default_error_hander
+
+    service_address = f'{service_protocol}://{service_hostname}'
+    if service_port:
+        service_address += f':{service_port}'
+    if service_path:
+        service_address += service_path
 
     @app.get('/status')
     def status():
@@ -71,9 +80,9 @@ def construct_app(dao, **kwargs):
         dao.insert_secret(secret)
 
         response.status = 202
-        response.set_header('Location', f'/secrets/{secret_id}')
+        response.set_header('Location', f'{service_path}/secrets/{secret_id}')
         return template('submit_result',
-                        secret_id=secret_id,
+                        secret_url=f'{service_address}/secrets/{secret_id}',
                         ttl=VALID_TTLS[ttl][1])
 
     @app.get('/secrets/<secret_id>')

@@ -33,18 +33,28 @@ def main():
 
 
 @click.command()
+@click.option('--service-protocol', type=click.Choice(('https', 'http')),
+              default='https',
+              help='The protocol for the public service. (default=https)')
+@click.option('--service-hostname', default='localhost',
+              help='The hostname for the public service. (default=localhost)')
+@click.option('--service-port', default='',
+              help='The port for the public service, if non standard.')
+@click.option('--service-path', default='',
+              help='The path prefix for the public service, if any.'
+                   'Should start with a "/", but not end with one.')
 @click.option('--mysql-host', default='localhost',
-              help='MySQL server host (default=localhost).')
+              help='MySQL server host. (default=localhost)')
 @click.option('--mysql-port', default=3306,
-              help='MySQL server port (default=3306).')
+              help='MySQL server port. (default=3306)')
 @click.option('--mysql-user', default='shh',
-              help='MySQL server user (default=shh).')
+              help='MySQL server user. (default=shh)')
 @click.option('--mysql-password', default='',
-              help='MySQL server password (default=None).')
+              help='MySQL server password. (default=None)')
 @click.option('--mysql-database', default='shh',
-              help='MySQL server database (default=shh).')
+              help='MySQL server database. (default=shh)')
 @click.option('--port', '-p', default=8080,
-              help='Port to serve on (default=8080).')
+              help='Port to serve on. (default=8080)')
 @click.option('--json', '-j', default=False, is_flag=True,
               help='Log in json.')
 @click.option('--verbose', '-v', default=False, is_flag=True,
@@ -94,15 +104,15 @@ def server(**options):
 
 @click.command()
 @click.option('--mysql-host', default='localhost',
-              help='MySQL server host (default=localhost).')
+              help='MySQL server host. (default=localhost)')
 @click.option('--mysql-port', default=3306,
-              help='MySQL server port (default=3306).')
+              help='MySQL server port. (default=3306)')
 @click.option('--mysql-user', default='shh',
-              help='MySQL server user (default=shh).')
+              help='MySQL server user. (default=shh)')
 @click.option('--mysql-password', default='',
-              help='MySQL server password (default=None).')
+              help='MySQL server password. (default=None)')
 @click.option('--mysql-database', default='shh',
-              help='MySQL server database (default=shh).')
+              help='MySQL server database. (default=shh)')
 @click.option('--json', '-j', default=False, is_flag=True,
               help='Log in json.')
 @click.option('--verbose', '-v', default=False, is_flag=True,

@@ -11,7 +11,7 @@
     <main>
       <h1>shh!</h1>
       <p>This link will expire in <span class="nowrap">{{ttl}}.</span></p>
-      <pre id="secretLink" class="wide">https://shh.resisty.com/secrets/{{secret_id}}</pre>
+      <pre id="secretLink" class="wide">{{secret_url}}</pre>
       <button id="copyButton" class="mainButton" type="button" title="Copy link to clipboard"
               onclick="copyToClipboard()" style="display: none">Copy Link</button>
       <p>It will only work once, so don't open it by mistake!</p>
