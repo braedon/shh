@@ -11,10 +11,10 @@
     <main>
       <h1>shh!</h1>
       <pre id="secret" class="wide">{{secret}}</pre>
-      <button id="showButton" type="button" title="Show secret"
-              onclick="showSecret()" style="display: none">Show Secret</button>
+      <button id="showSecretToggle" type="button" title="Show secret"
+              onclick="toggleSecret()" style="display: none">Show Secret</button>
       <button id="hideButton" type="button" title="Hide secret"
-              onclick="hideSecret()" style="display: none">Hide Secret</button>
+              onclick="toggleSecret()" style="display: none">Hide Secret</button>
       <button id="copyButton" class="mainButton" type="button" title="Copy link to clipboard"
               onclick="copyToClipboard()" style="display: none">Copy Secret</button>
       <p>This link won't work again, so make sure to take note of the secret!</p>
@@ -23,23 +23,29 @@
   </body>
   <script type="text/javascript">
     const secret = document.getElementById('secret');
-    const showButton = document.getElementById('showButton');
-    const hideButton = document.getElementById('hideButton');
+    const showSecretToggle = document.getElementById('showSecretToggle');
     const copyButton = document.getElementById('copyButton');
 
-    function showSecret() {
-      showButton.style.display = 'none';
-      secret.style.removeProperty('display');
-      hideButton.style.removeProperty('display');
-    }
+    var secretVisible = false;
 
-    function hideSecret() {
-      hideButton.style.display = 'none';
-      secret.style.display = 'none';
-      showButton.style.removeProperty('display');
+    function toggleSecret() {
+      if (secretVisible) {
+        secret.style.display = 'none';
+        showSecretToggle.title = 'Show Secret';
+        showSecretToggle.innerHTML = 'Show Secret';
+        secretVisible = false;
+      } else {
+        secret.style.removeProperty('display');
+        showSecretToggle.title = 'Hide Secret';
+        showSecretToggle.innerHTML = 'Hide Secret';
+        secretVisible = true;
+      }
     }
 
     function copyToClipboard() {
+      if (!secretVisible) {
+        secret.style.removeProperty('display');
+      }
       if(document.body.createTextRange) {
         // Internet Explorer
         var range = document.body.createTextRange();
@@ -56,10 +62,13 @@
         selection.addRange(range);
         document.execCommand('Copy');
       }
+      if (!secretVisible) {
+        secret.style.display = 'none';
+      }
     }
 
     secret.style.display = 'none';
-    showButton.style.removeProperty('display');
+    showSecretToggle.style.removeProperty('display');
     copyButton.style.removeProperty('display');
   </script>
 </html>

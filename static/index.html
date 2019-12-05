@@ -18,10 +18,8 @@
                   autocomplete="off" spellcheck="false" wrap="off"
                   placeholder="Secret" maxlength=2000 required  style="display: none" disabled/></textarea>
         <div class="inputWrapper">
-          <button id="expandButton" class="greyButton" type="button" title="Expand to text block mode"
-                  onclick="expandSecret()" style="display: none">Expand</button>
-          <button id="contractButton" class="greyButton" type="button" title="Shrink to single line mode"
-                  onclick="contractSecret()" style="display: none">Shrink</button>
+          <button id="expandToggle" class="greyButton" type="button" title="Expand to text block mode"
+                  onclick="toggleExpand()" style="display: none">Expand</button>
           <select name="ttl" title="How long before the link expires" required>
             <option value="5m">5 minutes</option>
             <option value="15m">15 minutes</option>
@@ -35,34 +33,27 @@
   </body>
   <script type="text/javascript">
     const smallSecret = document.getElementById('smallSecret');
-    const expandButton = document.getElementById('expandButton');
     const largeSecret = document.getElementById('largeSecret');
-    const contractButton = document.getElementById('contractButton');
+    const expandToggle = document.getElementById('expandToggle');
 
-    function expandSecret() {
-      expandButton.style.display = 'none';
-      smallSecret.disabled = true;
-      smallSecret.style.display = 'none';
+    var secretExpanded = false;
 
-      largeSecret.style.removeProperty('display');
-      largeSecret.disabled = false;
-      contractButton.style.removeProperty('display');
-
-      largeSecret.focus();
+    function toggleExpand() {
+      if (secretExpanded) {
+        largeSecret.style.display = 'none';
+        smallSecret.style.removeProperty('display');
+        expandToggle.title = 'Expand to text block mode';
+        expandToggle.innerHTML = 'Expand';
+        secretExpanded = false;
+      } else {
+        smallSecret.style.display = 'none';
+        largeSecret.style.removeProperty('display');
+        expandToggle.title = 'Shrink to single line mode';
+        expandToggle.innerHTML = 'Shrink';
+        secretExpanded = true;
+      }
     }
 
-    function contractSecret() {
-      contractButton.style.display = 'none';
-      largeSecret.disabled = true;
-      largeSecret.style.display = 'none';
-
-      smallSecret.style.removeProperty('display');
-      smallSecret.disabled = false;
-      expandButton.style.removeProperty('display');
-
-      smallSecret.focus();
-    }
-
-    expandButton.style.removeProperty('display');
+    expandToggle.style.removeProperty('display');
   </script>
 </html>
