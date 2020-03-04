@@ -1,4 +1,5 @@
 import secrets
+import textwrap
 
 from bottle import template
 
@@ -17,3 +18,8 @@ def html_default_error_hander(res):
         body = template('error', error=res)
 
     return body
+
+
+def indent(block, indent=2):
+    """Indent a multi-line text block by a number of spaces"""
+    return textwrap.indent(block.strip(), ' ' * indent)

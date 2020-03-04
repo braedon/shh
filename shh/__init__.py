@@ -38,11 +38,15 @@ def construct_app(dao,
 
     @app.get('/')
     def index():
-        return static_file('index.html', root='static')
+        return template('index')
 
     @app.get('/main.css')
     def css():
         return static_file('main.css', root='static')
+
+    @app.get('/<filename>.js')
+    def scripts(filename):
+        return static_file(f'{filename}.js', root='static')
 
     @app.post('/secrets')
     def submit_secret():
