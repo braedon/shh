@@ -1,12 +1,12 @@
 import logging
 import rfc3339
-import secrets
 import time
 
 from bottle import Bottle, request, response, static_file, abort, template
 from datetime import timedelta
 
 from .dao import Secret
+from .misc import html_default_error_hander, generate_id
 
 
 log = logging.getLogger(__name__)
@@ -19,25 +19,12 @@ VALID_TTLS = {
 }
 
 
-def generate_id():
-    return secrets.token_urlsafe(8)
-
-
-def custom_default_error_hander(res):
-    if res.status_code == 404:
-        body = template('error_404', error=res)
-    else:
-        body = template('error', error=res)
-
-    return body
-
-
 def construct_app(dao,
                   service_protocol, service_hostname,
                   service_port, service_path,
                   **kwargs):
     app = Bottle()
-    app.default_error_handler = custom_default_error_hander
+    app.default_error_handler = html_default_error_hander
 
     service_address = f'{service_protocol}://{service_hostname}'
     if service_port:
