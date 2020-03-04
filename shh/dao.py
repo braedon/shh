@@ -36,6 +36,23 @@ def secret_from_db_format(db_format_secret):
     return Secret(**db_format_secret)
 
 
+def create_db(conn, db_name):
+    sql = (
+        f'CREATE DATABASE IF NOT EXISTS `{db_name}` '
+        'CHARACTER SET `utf8mb4`'
+        ';'
+    )
+
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute(sql)
+
+        conn.commit()
+
+    finally:
+        conn.close()
+
+
 class ShhDao(object):
 
     def __init__(self, connection_pool):
@@ -53,7 +70,8 @@ class ShhDao(object):
                     '   `secret` VARBINARY(8000) NOT NULL,'
                     '   PRIMARY KEY (`secret_id`),'
                     '   KEY `idx_secret_expire_dt` (`expire_dt`)'
-                    ');'
+                    ') '
+                    'CHARACTER SET `utf8mb4`;'
                 )
                 cursor.execute(sql)
 

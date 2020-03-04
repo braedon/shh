@@ -9,9 +9,10 @@ import time
 
 from DBUtils.PooledDB import PooledDB
 from gevent.pool import Pool
+from pymysql import Connection
 
 from shh import construct_app, run_worker
-from shh.dao import ShhDao
+from shh.dao import ShhDao, create_db
 
 from logging_utils import configure_logging, wsgi_log_middleware
 from utils import log_exceptions, nice_shutdown, graceful_cleanup
@@ -30,6 +31,55 @@ gevent_pool = Pool()
 @click.group(context_settings=CONTEXT_SETTINGS)
 def main():
     pass
+
+
+@click.command()
+@click.option('--mysql-host', default='localhost',
+              help='MySQL server host. (default=localhost)')
+@click.option('--mysql-port', default=3306,
+              help='MySQL server port. (default=3306)')
+@click.option('--mysql-user', default='shh',
+              help='MySQL server user. (default=shh)')
+@click.option('--mysql-password', default='',
+              help='MySQL server password. (default=None)')
+@click.option('--mysql-database', default='shh',
+              help='MySQL server database. (default=shh)')
+@click.option('--json', '-j', default=False, is_flag=True,
+              help='Log in json.')
+@click.option('--verbose', '-v', default=False, is_flag=True,
+              help='Log debug messages.')
+@log_exceptions(exit_on_exception=True)
+@nice_shutdown()
+def init(**options):
+
+    configure_logging(json=options['json'], verbose=options['verbose'])
+
+    connection = Connection(host=options['mysql_host'],
+                            port=options['mysql_port'],
+                            user=options['mysql_user'],
+                            password=options['mysql_password'],
+                            charset='utf8mb4',
+                            cursorclass=pymysql.cursors.DictCursor)
+
+    create_db(connection, options['mysql_database'])
+
+    connection_pool = PooledDB(creator=pymysql,
+                               mincached=1,
+                               maxcached=10,
+                               # max connections currently in use - doesn't
+                               # include cached connections
+                               maxconnections=50,
+                               blocking=True,
+                               host=options['mysql_host'],
+                               port=options['mysql_port'],
+                               user=options['mysql_user'],
+                               password=options['mysql_password'],
+                               database=options['mysql_database'],
+                               charset='utf8mb4',
+                               cursorclass=pymysql.cursors.DictCursor)
+    shh_dao = ShhDao(connection_pool)
+
+    shh_dao.create_secret_table()
 
 
 @click.command()
@@ -89,7 +139,6 @@ def server(**options):
                                charset='utf8mb4',
                                cursorclass=pymysql.cursors.DictCursor)
     shh_dao = ShhDao(connection_pool)
-    shh_dao.create_secret_table()
 
     app = construct_app(shh_dao, **options)
     app = wsgi_log_middleware(app)
@@ -143,6 +192,7 @@ def worker(**options):
     run_worker(shh_dao, **options)
 
 
+main.add_command(init)
 main.add_command(server)
 main.add_command(worker)
 
