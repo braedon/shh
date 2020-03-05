@@ -6,7 +6,7 @@ from bottle import Bottle, request, response, static_file, abort, template
 from datetime import timedelta
 
 from .dao import Secret
-from .misc import html_default_error_hander, generate_id
+from .misc import html_default_error_hander, generate_id, security_headers
 
 
 log = logging.getLogger(__name__)
@@ -25,6 +25,7 @@ def construct_app(dao,
                   **kwargs):
     app = Bottle()
     app.default_error_handler = html_default_error_hander
+    app.install(security_headers)
 
     service_address = f'{service_protocol}://{service_hostname}'
     if service_port:

@@ -7,16 +7,16 @@ var secretExpanded = false;
 function toggleExpand() {
   if (secretExpanded) {
     largeSecret.disabled = true;
-    largeSecret.style.display = 'none';
-    smallSecret.style.removeProperty('display');
+    largeSecret.className = 'hidden';
+    smallSecret.className = '';
     smallSecret.disabled = false;
     expandToggle.title = 'Expand to text block mode';
     expandToggle.innerHTML = 'Expand';
     secretExpanded = false;
   } else {
     smallSecret.disabled = true;
-    smallSecret.style.display = 'none';
-    largeSecret.style.removeProperty('display');
+    smallSecret.className = 'hidden';
+    largeSecret.className = '';
     largeSecret.disabled = false;
     expandToggle.title = 'Shrink to single line mode';
     expandToggle.innerHTML = 'Shrink';
@@ -26,4 +26,4 @@ function toggleExpand() {
 
 expandToggle.addEventListener('click', toggleExpand);
 
-expandToggle.style.removeProperty('display');
+expandToggle.className = '';

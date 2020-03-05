@@ -9,12 +9,12 @@ rebase('base.tpl', title='shh!',
   <form action="/secrets" method="POST">
     <input id="smallSecret" type="password" name="secret" autocomplete="off"
            placeholder="Secret" maxlength=100 required autofocus/>
-    <textarea id="largeSecret" name="secret"
+    <textarea id="largeSecret" name="secret" class="hidden"
               autocomplete="off" spellcheck="false" wrap="off"
-              placeholder="Secret" maxlength=2000 required  style="display: none" disabled/></textarea>
+              placeholder="Secret" maxlength=2000 required disabled/></textarea>
     <div class="inputWrapper">
-      <button id="expandToggle" type="button" title="Expand to text block mode"
-              style="display: none">Expand</button>
+      <button id="expandToggle" type="button" class="hidden"
+              title="Expand to text block mode">Expand</button>
       <select name="ttl" title="How long before the link expires" required>
         <option value="5m">5 minutes</option>
         <option value="15m">15 minutes</option>

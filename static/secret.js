@@ -6,12 +6,12 @@ var secretVisible = false;
 
 function toggleSecret() {
   if (secretVisible) {
-    secret.style.display = 'none';
+    secret.className = 'hidden';
     showSecretToggle.title = 'Show Secret';
     showSecretToggle.innerHTML = 'Show Secret';
     secretVisible = false;
   } else {
-    secret.style.removeProperty('display');
+    secret.className = '';
     showSecretToggle.title = 'Hide Secret';
     showSecretToggle.innerHTML = 'Hide Secret';
     secretVisible = true;
@@ -20,7 +20,7 @@ function toggleSecret() {
 
 function copyToClipboard() {
   if (!secretVisible) {
-    secret.style.removeProperty('display');
+    secret.className = '';
   }
   if(document.body.createTextRange) {
     // Internet Explorer
@@ -39,13 +39,13 @@ function copyToClipboard() {
     document.execCommand('Copy');
   }
   if (!secretVisible) {
-    secret.style.display = 'none';
+    secret.className = 'hidden';
   }
 }
 
 showSecretToggle.addEventListener('click', toggleSecret);
 copyButton.addEventListener('click', copyToClipboard);
 
-secret.style.display = 'none';
-showSecretToggle.style.removeProperty('display');
-copyButton.style.removeProperty('display');
+secret.className = 'hidden';
+showSecretToggle.className = '';
+copyButton.className = '';

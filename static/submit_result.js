@@ -22,4 +22,4 @@ function copyToClipboard() {
 
 copyButton.addEventListener('click', copyToClipboard);
 
-copyButton.style.removeProperty('display');
+copyButton.className = '';
