@@ -95,6 +95,9 @@ button.mainButton:active {
 .nowrap {
   white-space: nowrap;
 }
+.spacer {
+  flex-grow: 1;
+}
 
 html {
   width: 100%;
@@ -135,6 +138,12 @@ main > *, form > * {
 main .wide {
   width: auto;
   max-width: 100%;
+}
+main .header {
+  display: flex;
+}
+main .header a {
+  padding: 10px;
 }
 main form {
   display: inline-flex;

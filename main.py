@@ -13,6 +13,7 @@ from pymysql import Connection
 
 from shh import construct_app, run_worker
 from shh.dao import ShhDao, create_db
+from shh.session import TokenDecoder
 
 from utils import log_exceptions, nice_shutdown, graceful_cleanup
 from utils.logging import configure_logging, wsgi_log_middleware
@@ -93,6 +94,21 @@ def init(**options):
 @click.option('--service-path', default='',
               help='The path prefix for the public service, if any.'
                    'Should start with a "/", but not end with one.')
+@click.option('--oidc-name', default='Alias',
+              help='Name of the OpenID Connect provider to use for login.')
+@click.option('--oidc-iss', required=True,
+              help='Issuer string of the OpenID Connect provider.')
+@click.option('--oidc-auth-endpoint', required=True,
+              help='URL of the authenticaiton endpoint of the OpenID Connect provider.')
+@click.option('--oidc-token-endpoint', required=True,
+              help='URL of the token endpoint of the OpenID Connect provider.')
+@click.option('--oidc-public-key-file', default='id_rsa.pub', type=click.File(mode='rb'),
+              help='Path to RSA256 public key file for the OpenID Connect provider. '
+                   '(default=id_rsa.pub)')
+@click.option('--oidc-client-id', required=True,
+              help='Client ID issued by the OpenID Connect provider.')
+@click.option('--oidc-client-secret', required=True,
+              help='Client secret issued by the OpenID Connect provider.')
 @click.option('--mysql-host', default='localhost',
               help='MySQL server host. (default=localhost)')
 @click.option('--mysql-port', default=3306,
@@ -103,6 +119,8 @@ def init(**options):
               help='MySQL server password. (default=None)')
 @click.option('--mysql-database', default='shh',
               help='MySQL server database. (default=shh)')
+@click.option('--testing-mode', default=False, is_flag=True,
+              help='Relax security to simplify testing, e.g. allow http cookies')
 @click.option('--port', '-p', default=8080,
               help='Port to serve on. (default=8080)')
 @click.option('--json', '-j', default=False, is_flag=True,
@@ -140,7 +158,11 @@ def server(**options):
                                cursorclass=pymysql.cursors.DictCursor)
     shh_dao = ShhDao(connection_pool)
 
-    app = construct_app(shh_dao, **options)
+    with options['oidc_public_key_file'] as file:
+        public_key = file.read()
+    token_decoder = TokenDecoder(public_key, options['oidc_iss'], options['oidc_client_id'])
+
+    app = construct_app(shh_dao, token_decoder, **options)
     app = wsgi_log_middleware(app)
 
     with graceful_cleanup(graceful_shutdown):

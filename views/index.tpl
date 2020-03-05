@@ -4,6 +4,15 @@ rebase('base.tpl', title='shh!',
        post_scripts=['index'])
 %>
 <main>
+  <div class="header">
+    % if defined('user_id') and user_id:
+    <span class="spacer"></span>
+    <a href="/logout">Log out</a>
+    % else:
+    <span class="spacer"></span>
+    <a href="/login">Log in</a>
+    % end
+  </div>
   <h1>shh!</h1>
   <p>Share passwords <span class="nowrap">(or other secrets)</span> via expiring <span class="nowrap">one-time links.</span></p>
   <form action="/secrets" method="POST">
@@ -22,6 +31,9 @@ rebase('base.tpl', title='shh!',
         <option value="1h">1 hour</option>
       </select>
     </div>
+    % if defined('csrf') and csrf:
+    <input name="csrf" type="hidden" value="{{csrf}}" />
+    % end
     <button id="submitButton" class="mainButton">Generate Link</button>
   </form>
 </main>

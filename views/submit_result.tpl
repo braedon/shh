@@ -1,5 +1,14 @@
 % rebase('base.tpl', title=f'shh! - Secret Link', post_scripts=['submit_result'])
 <main>
+  <div class="header">
+    % if defined('user_id') and user_id:
+    <span class="spacer"></span>
+    <a href="/logout">Log out</a>
+    % else:
+    <span class="spacer"></span>
+    <a href="/login">Log in</a>
+    % end
+  </div>
   <h1>shh!</h1>
   <p>This link will expire in <span class="nowrap">{{ttl}}.</span></p>
   <pre id="secretLink" class="wide">{{secret_url}}</pre>
