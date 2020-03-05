@@ -43,7 +43,8 @@ def security_headers(f):
             "default-src 'none'",
             "img-src 'self'",
             "script-src 'self'",
-            "style-src 'self' https://necolas.github.io",
+            "style-src 'self' https://necolas.github.io https://fonts.googleapis.com",
+            "font-src https://fonts.gstatic.com",
             # Document directives
             "base-uri 'self'",
             # Navigation directives

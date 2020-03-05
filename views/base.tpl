@@ -10,6 +10,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <link rel="stylesheet" type="text/css" href="https://necolas.github.io/normalize.css/8.0.1/normalize.css">
+    <link href="https://fonts.googleapis.com/css?family=Raleway:500&display=swap" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="/main.css">
   </head>
   <body>
@@ -21,9 +22,9 @@
 % end
 
     % if defined('post_scripts'):
-    % for script in post_scripts:
+    %   for script in post_scripts:
     <script src="/{{script}}.js"></script>
-    % end
+    %   end
     % end
   </body>
 </html>
