@@ -13,8 +13,12 @@
     <link rel="stylesheet" type="text/css" href="/main.css">
   </head>
   <body>
+% if get('do_indent', True):
 % from shh.misc import indent
 {{!indent(base, 4)}}
+% else:
+{{!base}}
+% end
 
     % if defined('post_scripts'):
     % for script in post_scripts:

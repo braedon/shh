@@ -1,4 +1,4 @@
-% rebase('base.tpl', title=f'shh! - View Secret', post_scripts=['secret'])
+% rebase('base.tpl', title=f'shh! - View Secret', post_scripts=['secret'], do_indent=False)
 <main>
   <h1>shh!</h1>
   <pre id="secret" class="wide">{{secret}}</pre>
