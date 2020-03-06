@@ -1,6 +1,8 @@
 from collections import namedtuple
 from datetime import timezone
 
+from utils.fluent import InsertInto, Param, Select, Table, Wildcard
+
 
 Secret = namedtuple('Secret', ['secret_id',
                                'user_id',
@@ -8,12 +10,7 @@ Secret = namedtuple('Secret', ['secret_id',
                                'secret',
                                'create_dt',
                                'expire_dt'])
-
-
-def build_insert_stmt(table, columns):
-    columns_stmt = ', '.join(f'`{c}`' for c in columns)
-    values_stmt = ', '.join(f'%({c})s' for c in columns)
-    return f'INSERT INTO `{table}` ({columns_stmt}) VALUES ({values_stmt});'
+SECRET_TABLE = Table('secret', columns=Secret._fields)
 
 
 def secret_to_db_format(secret):
@@ -61,22 +58,23 @@ class ShhDao(object):
         self.connection_pool = connection_pool
 
     def create_secret_table(self):
+        sql = (
+            'CREATE TABLE IF NOT EXISTS `secret` ('
+            '  `secret_id` VARCHAR(100) BINARY NOT NULL, '
+            '  `user_id` VARCHAR(100) BINARY NULL, '
+            '  `description` VARCHAR(100) NULL, '
+            '  `secret` VARBINARY(8000) NOT NULL, '
+            '  `create_dt` DATETIME NOT NULL, '
+            '  `expire_dt` DATETIME NOT NULL, '
+            '  PRIMARY KEY (`secret_id`), '
+            '  KEY `idx_secret_expire_dt` (`expire_dt`)'
+            ') '
+            'CHARACTER SET `utf8mb4`;'
+        )
+
         conn = self.connection_pool.connection()
         try:
             with conn.cursor() as cursor:
-                sql = (
-                    'CREATE TABLE IF NOT EXISTS `secret` ('
-                    '   `secret_id` VARCHAR(100) BINARY NOT NULL,'
-                    '   `user_id` VARCHAR(100) BINARY NULL,'
-                    '   `description` VARCHAR(100) NULL,'
-                    '   `secret` VARBINARY(8000) NOT NULL,'
-                    '   `create_dt` DATETIME NOT NULL,'
-                    '   `expire_dt` DATETIME NOT NULL,'
-                    '   PRIMARY KEY (`secret_id`),'
-                    '   KEY `idx_secret_expire_dt` (`expire_dt`)'
-                    ') '
-                    'CHARACTER SET `utf8mb4`;'
-                )
                 cursor.execute(sql)
 
             conn.commit()
@@ -85,13 +83,13 @@ class ShhDao(object):
             conn.close()
 
     def insert_secret(self, secret):
-        secret_dict = secret_to_db_format(secret)
-        sql = build_insert_stmt('secret', secret._fields)
+        sql = InsertInto(SECRET_TABLE).columns(*SECRET_TABLE).to_sql()
+        sql_params = secret_to_db_format(secret)
 
         conn = self.connection_pool.connection()
         try:
             with conn.cursor() as cursor:
-                cursor.execute(sql, secret_dict)
+                cursor.execute(sql, sql_params)
 
             conn.commit()
 
@@ -99,31 +97,33 @@ class ShhDao(object):
             conn.close()
 
     def get_secret(self, secret_id):
-        sql = 'SELECT * FROM `secret`'
-        sql += ' WHERE `secret_id`=%(secret_id)s'
-        sql += ';'
-
+        q = Select(Wildcard) \
+            .from_table(SECRET_TABLE) \
+            .where(SECRET_TABLE['secret_id'] == Param('secret_id'))
+        sql = q.to_sql()
         sql_params = {'secret_id': secret_id}
 
         conn = self.connection_pool.connection()
         try:
             with conn.cursor() as cursor:
                 cursor.execute(sql, sql_params)
-                secret_dicts = cursor.fetchall()
-                assert len(secret_dicts) in (0, 1)
+                assert cursor.rowcount in (0, 1)
+                secret_dict = cursor.fetchone()
 
         finally:
             conn.close()
 
-        if secret_dicts:
-            return secret_from_db_format(secret_dicts[0])
+        if secret_dict is not None:
+            return secret_from_db_format(secret_dict)
         else:
             return None
 
     def delete_secret(self, secret_id):
-        sql = 'DELETE FROM `secret`'
-        sql += ' WHERE `secret_id`=%(secret_id)s'
-        sql += ';'
+        sql = (
+            'DELETE FROM `secret` '
+            'WHERE `secret_id`=%(secret_id)s'
+            ';'
+        )
 
         sql_params = {'secret_id': secret_id}
 
@@ -131,17 +131,21 @@ class ShhDao(object):
         try:
             with conn.cursor() as cursor:
                 cursor.execute(sql, sql_params)
-                assert cursor.rowcount == 1
+                assert cursor.rowcount in (0, 1)
 
             conn.commit()
 
         finally:
             conn.close()
 
+        return bool(cursor.rowcount)
+
     def delete_expired_secrets(self, now_dt):
-        sql = 'DELETE FROM `secret`'
-        sql += ' WHERE `expire_dt`<%(now_dt)s'
-        sql += ';'
+        sql = (
+            'DELETE FROM `secret` '
+            'WHERE `expire_dt`<%(now_dt)s'
+            ';'
+        )
 
         sql_params = {'now_dt': now_dt}
 

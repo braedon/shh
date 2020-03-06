@@ -11,12 +11,12 @@ from DBUtils.PooledDB import PooledDB
 from gevent.pool import Pool
 from pymysql import Connection
 
+from utils import log_exceptions, nice_shutdown, graceful_cleanup
+from utils.logging import configure_logging, wsgi_log_middleware
+
 from shh import construct_app, run_worker
 from shh.dao import ShhDao, create_db
 from shh.session import TokenDecoder
-
-from utils import log_exceptions, nice_shutdown, graceful_cleanup
-from utils.logging import configure_logging, wsgi_log_middleware
 
 CONTEXT_SETTINGS = {
     'help_option_names': ['-h', '--help']
