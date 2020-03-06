@@ -3,6 +3,7 @@ from datetime import timezone
 
 
 Secret = namedtuple('Secret', ['secret_id',
+                               'user_id',
                                'description',
                                'secret',
                                'create_dt',
@@ -66,7 +67,8 @@ class ShhDao(object):
                 sql = (
                     'CREATE TABLE IF NOT EXISTS `secret` ('
                     '   `secret_id` VARCHAR(100) BINARY NOT NULL,'
-                    '   `description` VARCHAR(100),'
+                    '   `user_id` VARCHAR(100) BINARY NULL,'
+                    '   `description` VARCHAR(100) NULL,'
                     '   `secret` VARBINARY(8000) NOT NULL,'
                     '   `create_dt` DATETIME NOT NULL,'
                     '   `expire_dt` DATETIME NOT NULL,'

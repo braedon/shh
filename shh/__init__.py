@@ -193,6 +193,7 @@ def construct_app(dao, token_decoder,
         now_dt = rfc3339.now()
         secret_id = generate_id()
         secret = Secret(secret_id=secret_id,
+                        user_id=user_id,
                         description=description,
                         secret=secret,
                         create_dt=now_dt,
