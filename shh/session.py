@@ -4,11 +4,11 @@ import jwt
 import logging
 
 from base64 import urlsafe_b64encode, urlsafe_b64decode
-from bottle import abort, request, response, redirect
+from bottle import request, response, redirect
 from jwt.exceptions import InvalidTokenError, ExpiredSignatureError
 from urllib.parse import urlencode
 
-from .misc import set_headers
+from .misc import abort, set_headers
 
 log = logging.getLogger(__name__)
 
@@ -51,35 +51,33 @@ class SessionHandler(object):
         self.oidc_cookie = OIDC_COOKIE if self.testing_mode else f'__Host-{OIDC_COOKIE}'
         self.session_cookie = SESSION_COOKIE if self.testing_mode else f'__Host-{SESSION_COOKIE}'
 
-    def redirect_to_login(self, continue_url=None, client_id=None):
+    def redirect_to_login(self, continue_url=None):
         continue_url = continue_url or request.url
         url_params = {'continue': continue_url}
-        if client_id:
-            url_params['client_id'] = client_id
         redirect(f'/{self.login_endpoint}?{urlencode(url_params)}')
 
-    def set_oidc_state(self, state, nonce, continue_url):
-        oidc_state = f'{state}:{nonce}:{continue_url}'
-        encoded_oidc_state = urlsafe_b64encode(oidc_state.encode('utf-8')).decode('utf-8')
+    def set_oidc_data(self, state, nonce, continue_url):
+        oidc_data = f'{state}:{nonce}:{continue_url}'
+        encoded_oidc_data = urlsafe_b64encode(oidc_data.encode('utf-8')).decode('utf-8')
         # TODO: Set `same_site=True` once Bottle supports it
-        response.set_cookie(self.oidc_cookie, encoded_oidc_state,
+        response.set_cookie(self.oidc_cookie, encoded_oidc_data,
                             # Path must be / since we're using a domain locked cookie
                             path='/',
                             max_age=OIDC_MAX_AGE, httponly=True,
                             secure=False if self.testing_mode else True)
 
-    def clear_oidc_state(self):
+    def clear_oidc_data(self):
         response.delete_cookie(self.oidc_cookie, path='/', httponly=True,
                                secure=False if self.testing_mode else True)
 
-    def get_oidc_state(self):
-        encoded_oidc_state = request.get_cookie(self.oidc_cookie)
-        if not encoded_oidc_state:
+    def get_oidc_data(self):
+        encoded_oidc_data = request.get_cookie(self.oidc_cookie)
+        if not encoded_oidc_data:
             return None
 
         try:
-            oidc_state = urlsafe_b64decode(encoded_oidc_state.encode('utf-8')).decode('utf-8')
-            state, nonce, continue_url = oidc_state.split(':', 2)
+            oidc_data = urlsafe_b64decode(encoded_oidc_data.encode('utf-8')).decode('utf-8')
+            state, nonce, continue_url = oidc_data.split(':', 2)
         except (binascii.Error, ValueError) as e:
             log.warning('Received invalid oidc state cookie: %(error)s', {'error': e})
             return None
@@ -122,8 +120,13 @@ class SessionHandler(object):
     def _check_csrf(self, session):
         if request.method == 'POST':
             request_csrf = request.forms.get('csrf')
-            if not request_csrf or request_csrf != session['csrf']:
-                abort(403, text=None)
+            if not request_csrf:
+                log.warning('Received request with no CSRF token.')
+                abort(403)
+
+            if request_csrf != session['csrf']:
+                log.warning('Received request with mismatching CSRF token.')
+                abort(403)
 
     def require_session(self, check_csrf=True):
 

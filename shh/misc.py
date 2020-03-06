@@ -3,8 +3,14 @@ import secrets
 import textwrap
 
 from bottle import HTTPResponse, response, template
+from bottle import abort as bottle_abort
 
 ID_LENGTH = 16
+
+
+# Have no text by default, unlike the default bottle abort function
+def abort(code=500, text=None):
+    bottle_abort(code=code, text=text)
 
 
 # TODO: Should we generate a GUID v4 (fully random) instead?

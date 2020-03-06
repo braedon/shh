@@ -3,14 +3,15 @@ import requests
 import rfc3339
 import time
 
-from bottle import Bottle, request, response, static_file, template, abort, redirect
+from bottle import Bottle, request, response, static_file, template, redirect
 from datetime import timedelta
+from jwt.exceptions import InvalidTokenError
 from urllib.parse import urlparse, urljoin
 
 from utils.param_parse import parse_params, string_param
 
 from .dao import Secret
-from .misc import html_default_error_hander, generate_id, security_headers
+from .misc import abort, html_default_error_hander, generate_id, security_headers
 from .session import SessionHandler
 
 
@@ -55,14 +56,14 @@ def construct_app(dao, token_decoder,
         except ValueError:
             log.warning('Received invalid continue url: %(continue_url)s',
                         {'continue_url': continue_url})
-            abort(400, text=None)
+            abort(400)
 
         if parsed_continue_url.scheme or parsed_continue_url.netloc:
             # Absolute url - check it's for this service'
             if not continue_url.startswith(service_address):
                 log.warning('Received continue url for another service: %(continue_url)s',
                             {'continue_url': continue_url})
-                abort(400, text=None)
+                abort(400)
 
     @app.get('/status')
     def status():
@@ -101,7 +102,7 @@ def construct_app(dao, token_decoder,
         nonce = generate_id()
 
         # NOTE: The state field works as Login CSRF protection.
-        session_handler.set_oidc_state(state, nonce, continue_url or DEFAULT_CONTINUE_URL)
+        session_handler.set_oidc_data(state, nonce, continue_url or DEFAULT_CONTINUE_URL)
 
         return template('login',
                         oidc_name=oidc_name,
@@ -113,25 +114,65 @@ def construct_app(dao, token_decoder,
 
     @app.get('/oidc/callback')
     def get_oidc_callback():
-        # TODO: support OAUTH/OIDC error responses
-        params = parse_params(request.query.decode(),
-                              state=string_param('state', required=True),
-                              code=string_param('code', required=True))
-
-        state = params['state']
-        code = params['code']
 
         # NOTE: Generally raise 500 for unexpected issues with the oidc flow, caused either by our
         #       oidc state management or the oidc provider response. All traffic to this endpoint
         #       should be via the oidc flow, and the provider should be working to spec. If not,
         #       something is likely wrong with the flow implementation, so 500 is appropriate.
 
-        oidc_state = session_handler.get_oidc_state()
-        if not oidc_state or state != oidc_state['state']:
+        # Check state and error before anything else, to make sure nothing's fishy
+        params = parse_params(request.query.decode(),
+                              state=string_param('state'),
+                              error=string_param('error'),
+                              error_description=string_param('error_description'))
+
+        # Use 500 rather than "nicer" error if state is missing.
+        state = params.get('state')
+        if not state:
+            log.warning('Received OIDC callback with no state.')
             abort(500)
 
-        continue_url = oidc_state['continue_url']
-        # NOTE: we check this again, since the oidc_state cookie isn't signed so could be changed
+        oidc_data = session_handler.get_oidc_data()
+        if not oidc_data:
+            log.warning('Received OIDC callback with no OIDC data cookie.')
+            abort(500)
+
+        # If states are present, but don't match, the user may have started two flows in parallel,
+        # completing the first when we're expecting the second. Redirect them back to the login
+        # screen to be nice.
+        if state != oidc_data['state']:
+            log.warning('Received OIDC callback with mismatching state.')
+            redirect('/login')
+
+        error = params.get('error')
+        if error:
+            # If they rejected the OIDC scopes, send them back home. Up to them to initiate again.
+            # TODO: Should we show them a message explaining this somehow?
+            if error == 'access_denied':
+                redirect('/')
+            # Any other error...
+            else:
+                error_description = params.get('error_description')
+                log_msg = 'Received OIDC callback with error %(error)s'
+                log_params = {'error': error}
+                if error_description:
+                    log_msg += ': %(error_description)s'
+                    log_params['error_description'] = error_description
+                log.warning(log_msg, log_params)
+                abort(500)
+
+        # If there wasn't an error, there should be a code
+        params = parse_params(request.query.decode(),
+                              code=string_param('code'))
+        code = params.get('code')
+        # Once again, use 500 rather than a "nicer" error if code is missing
+        if not code:
+            log.warning('Received OIDC callback with no code.')
+            abort(500)
+
+        # Check continue_url before attempting to call the OIDC provider, just in case.
+        continue_url = oidc_data['continue_url']
+        # NOTE: we check this again, since the oidc_data cookie isn't signed so could be changed
         #       by the user.
         check_continue_url(continue_url)
 
@@ -141,15 +182,32 @@ def construct_app(dao, token_decoder,
                                 'client_id': oidc_client_id,
                                 'redirect_uri': oidc_redirect_uri,
                                 'code': code})
-        r.raise_for_status()
 
-        id_token = r.json()['id_token']
-        id_token_jwt = token_decoder.decode_id_token(id_token)
-        if id_token_jwt['nonce'] != oidc_state['nonce']:
+        # Only supported response status code.
+        if r.status_code == 200:
+            pass
+        else:
+            log.warning('OIDC token endpoint returned unexpected status code %(status_code)s.',
+                        {'status_code': r.status_code})
+            r.raise_for_status()
+            raise NotImplementedError(f'Unsupported status code {r.status_code}.')
+
+        try:
+            id_token = r.json()['id_token']
+            id_token_jwt = token_decoder.decode_id_token(id_token)
+        except (ValueError, KeyError, InvalidTokenError) as e:
+            log.warning('OIDC token endpoint returned invalid response: %(error)s', {'error': e})
+
+        if 'nonce' not in id_token_jwt:
+            log.warning('OIDC token endpoint didn\'t return nonce in token.')
+            abort(500)
+
+        if id_token_jwt['nonce'] != oidc_data['nonce']:
+            log.warning('OIDC token endpoint returned incorrect nonce in token.')
             abort(500)
 
         session_handler.set_session(id_token)
-        session_handler.clear_oidc_state()
+        session_handler.clear_oidc_data()
         redirect(continue_url)
 
     # NOTE: The logout endpoint doesn't require CSRF protection, as the session isn't used to
