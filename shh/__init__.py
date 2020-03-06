@@ -218,7 +218,7 @@ def construct_app(dao, token_decoder,
     #       authenticate the user - the session, if it exists, is cleared instead.
     # TODO: Make POST
     @app.get('/logout')
-    @session_handler.maybe_session(check_csrf=False)
+    @session_handler.maybe_session(check_csrf=False, maybe_refresh=False)
     def logout():
         params = parse_params(request.query.decode(),
                               continue_url=string_param('continue'))

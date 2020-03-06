@@ -17,6 +17,7 @@ OIDC_COOKIE = 'shh_oidc'
 OIDC_MAX_AGE = 60 * 10  # 10 minutes
 SESSION_COOKIE = 'shh_session'
 SESSION_MAX_AGE = 60 * 60 * 24  # 24 hours
+REFRESH_SESSION_COOKIE = 'shh_refresh_session'
 # Headers to prevent responses that use a session from being cached.
 CACHE_HEADERS = {
     'Pragma': 'no-cache',
@@ -50,6 +51,7 @@ class SessionHandler(object):
         # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie#Cookie_prefixes
         self.oidc_cookie = OIDC_COOKIE if self.testing_mode else f'__Host-{OIDC_COOKIE}'
         self.session_cookie = SESSION_COOKIE if self.testing_mode else f'__Host-{SESSION_COOKIE}'
+        self.refresh_session_cookie = REFRESH_SESSION_COOKIE if self.testing_mode else f'__Host-{REFRESH_SESSION_COOKIE}'
 
     def redirect_to_login(self, continue_url=None):
         continue_url = continue_url or request.url
@@ -88,13 +90,17 @@ class SessionHandler(object):
 
     def set_session(self, id_token):
         # TODO: Set `same_site=True` once Bottle supports it
+        response.set_cookie(self.refresh_session_cookie, 'true',
+                            path='/', httponly=True,  # No max_age - "session" cookie
+                            secure=False if self.testing_mode else True)
         response.set_cookie(self.session_cookie, id_token,
-                            path='/',
-                            max_age=SESSION_MAX_AGE, httponly=True,
+                            path='/', max_age=SESSION_MAX_AGE, httponly=True,
                             secure=False if self.testing_mode else True)
 
     def clear_session(self):
         response.delete_cookie(self.session_cookie, path='/', httponly=True,
+                               secure=False if self.testing_mode else True)
+        response.delete_cookie(self.refresh_session_cookie, path='/', httponly=True,
                                secure=False if self.testing_mode else True)
 
     def _get_session(self):
@@ -117,16 +123,23 @@ class SessionHandler(object):
                 # Use id token id as the CSRF token.
                 'csrf': session_jwt['jti']}
 
-    def _check_csrf(self, session):
-        if request.method == 'POST':
-            request_csrf = request.forms.get('csrf')
-            if not request_csrf:
-                log.warning('Received request with no CSRF token.')
-                abort(403)
+    def _should_refresh_session(self):
+        refresh_session_val = request.get_cookie(self.refresh_session_cookie)
+        return bool(refresh_session_val == 'true')
 
-            if request_csrf != session['csrf']:
-                log.warning('Received request with mismatching CSRF token.')
-                abort(403)
+    def _check_csrf(self, session):
+        # CSRF tokens only apply to certain request methods
+        if request.method not in ('POST', 'PUT', 'DELETE'):
+            return
+
+        request_csrf = request.forms.get('csrf')
+        if not request_csrf:
+            log.warning('Received request with no CSRF token.')
+            abort(403)
+
+        if request_csrf != session['csrf']:
+            log.warning('Received request with mismatching CSRF token.')
+            abort(403)
 
     def require_session(self, check_csrf=True):
 
@@ -150,7 +163,7 @@ class SessionHandler(object):
 
         return decorator
 
-    def maybe_session(self, check_csrf=True):
+    def maybe_session(self, check_csrf=True, maybe_refresh=True):
 
         def decorator(f):
 
@@ -158,6 +171,12 @@ class SessionHandler(object):
             def wrapper(*args, **kwargs):
                 session = self._get_session()
                 if not session:
+                    # Even though a session is optional, we may want to redirect the user to login
+                    # anyway, e.g. if they have had a past session that has expired. Can only do
+                    # this for GET requests, however.
+                    if maybe_refresh and request.method == 'GET' and self._should_refresh_session():
+                        self.redirect_to_login()
+
                     request.session = None
                     r = f(*args, **kwargs)
                     set_headers(r, CACHE_HEADERS)
