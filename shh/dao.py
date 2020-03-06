@@ -3,9 +3,10 @@ from datetime import timezone
 
 
 Secret = namedtuple('Secret', ['secret_id',
+                               'description',
+                               'secret',
                                'create_dt',
-                               'expire_dt',
-                               'secret'])
+                               'expire_dt'])
 
 
 def build_insert_stmt(table, columns):
@@ -65,9 +66,10 @@ class ShhDao(object):
                 sql = (
                     'CREATE TABLE IF NOT EXISTS `secret` ('
                     '   `secret_id` VARCHAR(100) BINARY NOT NULL,'
+                    '   `description` VARCHAR(100),'
+                    '   `secret` VARBINARY(8000) NOT NULL,'
                     '   `create_dt` DATETIME NOT NULL,'
                     '   `expire_dt` DATETIME NOT NULL,'
-                    '   `secret` VARBINARY(8000) NOT NULL,'
                     '   PRIMARY KEY (`secret_id`),'
                     '   KEY `idx_secret_expire_dt` (`expire_dt`)'
                     ') '

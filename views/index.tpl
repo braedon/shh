@@ -23,6 +23,7 @@ rebase('base.tpl', title='shh!',
       <textarea id="largeSecret" name="secret" class="hidden"
                 autocomplete="off" spellcheck="false" wrap="off"
                 placeholder="Secret" maxlength=2000 required disabled/></textarea>
+      <input name="description" placeholder="Description (optional)" maxlength=100/>
       <div class="inputRow">
         <button id="expandToggle" type="button" class="hidden"
                 title="Expand to text block mode">Expand</button>

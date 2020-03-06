@@ -176,14 +176,16 @@ def construct_app(dao, token_decoder,
         else:
             user_id = None
 
-        secret = request.forms.secret
-        ttl = request.forms.ttl
+        params = parse_params(request.forms.decode(),
+                              description=string_param('description'),
+                              secret=string_param('secret', required=True),
+                              ttl=string_param('ttl', required=True, enum=VALID_TTLS.keys()))
+        description = params.get('description')
+        secret = params['secret']
+        ttl = params['ttl']
 
-        if not (secret and ttl):
-            abort(400, 'Please specify both a secret and a ttl.')
-
-        if ttl not in VALID_TTLS:
-            abort(400, 'Please specify a ttl of 5m, 15m, 30m, or 1h.')
+        if description and len(description) > 100:
+            abort(400, 'The description can\'t be longer than 100 characters.')
 
         if len(secret) > 2000:
             abort(400, 'The secret can\'t be longer than 2,000 characters.')
@@ -191,9 +193,10 @@ def construct_app(dao, token_decoder,
         now_dt = rfc3339.now()
         secret_id = generate_id()
         secret = Secret(secret_id=secret_id,
+                        description=description,
+                        secret=secret,
                         create_dt=now_dt,
-                        expire_dt=now_dt + VALID_TTLS[ttl][0],
-                        secret=secret)
+                        expire_dt=now_dt + VALID_TTLS[ttl][0])
         dao.insert_secret(secret)
 
         response.status = 202
@@ -213,7 +216,7 @@ def construct_app(dao, token_decoder,
 
         dao.delete_secret(secret_id)
 
-        return template('secret', secret=secret.secret)
+        return template('secret', description=secret.description, secret=secret.secret)
 
     return app
 

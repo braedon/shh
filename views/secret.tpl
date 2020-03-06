@@ -4,6 +4,9 @@
   <div class='content'>
     <h1>shh!</h1>
     <div class="section">
+      % if defined('description') and description:
+      <p>{{description}}</p>
+      % end
       <pre id="secret">{{secret}}</pre>
       <button id="showSecretToggle" type="button" class="hidden"
               title="Show Secret">Show Secret</button>
