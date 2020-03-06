@@ -5,7 +5,7 @@
     <h1>shh!</h1>
     <div class="section">
       <p>Oops, something went wrong.</p>
-      % if error.body:
+      % if error.body and error.status_code < 500:
       <p>{{error.body}}</p>
       % end
     </div>
