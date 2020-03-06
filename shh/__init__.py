@@ -86,6 +86,10 @@ def construct_app(dao, token_decoder,
     def css():
         return static_file('main.css', root='static')
 
+    @app.get('/robots.txt')
+    def robots():
+        return static_file('robots.txt', root='static')
+
     @app.get('/<filename>.js')
     def scripts(filename):
         return static_file(f'{filename}.js', root='static')
