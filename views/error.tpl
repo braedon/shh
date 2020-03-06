@@ -7,7 +7,7 @@
     % if error.body:
     <p>{{error.body}}</p>
     % end
-    <p><a href="/">Got a secret?</a></p>
+    <a class="buttonLike" href="/">Got a secret?</a>
   </div>
   <span class="spacer"></span>
 </main>

@@ -14,7 +14,7 @@
               title="Copy link to clipboard">Copy Secret</button>
       <p>This link won't work again, so make sure to take note of the secret!</p>
     </div>
-    <p><a href="/">Got a secret?</a></p>
+    <a class="buttonLike" href="/">Got a secret?</a>
   </div>
   <span class="spacer"></span>
 </main>

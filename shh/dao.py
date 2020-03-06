@@ -67,6 +67,7 @@ class ShhDao(object):
             '  `create_dt` DATETIME NOT NULL, '
             '  `expire_dt` DATETIME NOT NULL, '
             '  PRIMARY KEY (`secret_id`), '
+            '  KEY `idx_secret_user_id_expire_dt` (`user_id`, `expire_dt`), '
             '  KEY `idx_secret_expire_dt` (`expire_dt`)'
             ') '
             'CHARACTER SET `utf8mb4`;'
@@ -117,6 +118,27 @@ class ShhDao(object):
             return secret_from_db_format(secret_dict)
         else:
             return None
+
+    def find_secrets(self, user_id, now_dt):
+        q = Select(Wildcard) \
+            .from_table(SECRET_TABLE) \
+            .where(SECRET_TABLE['user_id'] == Param('user_id')) \
+            .where(SECRET_TABLE['expire_dt'] > Param('now_dt')) \
+            .order_by(SECRET_TABLE['expire_dt'])
+        sql = q.to_sql()
+        sql_params = {'user_id': user_id,
+                      'now_dt': now_dt}
+
+        conn = self.connection_pool.connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute(sql, sql_params)
+                user_dicts = cursor.fetchall()
+
+        finally:
+            conn.close()
+
+        return [secret_from_db_format(user_dict) for user_dict in user_dicts]
 
     def delete_secret(self, secret_id):
         sql = (

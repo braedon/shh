@@ -4,7 +4,7 @@
   <div class='content'>
     <h1>shh!</h1>
     <p>Oops, that page doesn't exist.</p>
-    <p><a href="/">Got a secret?</a></p>
+    <a class="buttonLike" href="/">Got a secret?</a>
   </div>
   <span class="spacer"></span>
 </main>

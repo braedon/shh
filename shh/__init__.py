@@ -204,9 +204,22 @@ def construct_app(dao, token_decoder,
         response.status = 202
         response.set_header('Location', f'{service_path}/secrets/{secret_id}')
         return template('submit_result',
+                        service_address=service_address,
                         user_id=user_id,
-                        secret_url=f'{service_address}/secrets/{secret_id}',
+                        secret_id=secret_id,
                         ttl=VALID_TTLS[ttl][1])
+
+    @app.get('/secrets')
+    @session_handler.require_session()
+    def get_secrets():
+        now_dt = rfc3339.now()
+        user_id = request.session['user_id']
+
+        secrets = dao.find_secrets(user_id, now_dt)
+
+        return template('secrets',
+                        service_address=service_address,
+                        secrets=secrets)
 
     @app.get('/secrets/<secret_id>')
     def get_secret(secret_id):
@@ -218,7 +231,9 @@ def construct_app(dao, token_decoder,
 
         dao.delete_secret(secret_id)
 
-        return template('secret', description=secret.description, secret=secret.secret)
+        return template('secret',
+                        description=secret.description,
+                        secret=secret.secret)
 
     return app
 

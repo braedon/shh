@@ -15,6 +15,7 @@
     }
     qs = urlencode(qs_dict)
     %>
+    <p>Logging in enables you to track which secret links you create are still active.</p>
     <a class="buttonLike mainButton" href="{{oidc_auth_endpoint}}?{{qs}}">Log in with {{oidc_name}}</a>
   </div>
   <span class="spacer"></span>

@@ -2,7 +2,7 @@
   box-sizing: border-box;
 }
 
-h1, h2, h3, p,
+h1, h2, h3, p, pre,
 input, textarea, select, button, label, fieldset {
   margin: 0;
   padding: 0;
@@ -33,10 +33,10 @@ a:active {
   text-decoration: underline;
 }
 
-a.buttonLike {
+.buttonLike {
   display: block;
 }
-input, textarea, select, button, a.buttonLike, pre {
+input, textarea, select, button, .buttonLike, pre {
   padding: 10px;
 
   border: 1px solid #DDD;
@@ -44,8 +44,8 @@ input, textarea, select, button, a.buttonLike, pre {
 
   color: inherit;
 }
-a.buttonLike:link,
-a.buttonLike:visited {
+.buttonLike:link,
+.buttonLike:visited {
   color: inherit;
 }
 input, textarea {
@@ -54,7 +54,7 @@ input, textarea {
 
   overflow: auto;
 }
-select, button, a.buttonLike {
+select, button, .buttonLike {
   background-color: inherit;
 
   text-align: center;
@@ -63,18 +63,18 @@ select:hover,
 select:active,
 button:hover,
 button:active,
-a.buttonLike:hover,
-a.buttonLike:active {
+.buttonLike:hover,
+.buttonLike:active {
   background-color: white;
 
   cursor: pointer;
 }
-a.buttonLike:hover,
-a.buttonLike:active {
+.buttonLike:hover,
+.buttonLike:active {
   text-decoration: none;
 }
 button.mainButton,
-a.buttonLike.mainButton {
+.buttonLike.mainButton {
   background-color: #0078e7;
   border: 1px solid #0078e7;
 
@@ -82,14 +82,14 @@ a.buttonLike.mainButton {
   font-size: 1.2em;
   font-weight: bold;
 }
-a.buttonLike.mainButton:link,
-a.buttonLike.mainButton:visited {
+.buttonLike.mainButton:link,
+.buttonLike.mainButton:visited {
   color: white;
 }
 button.mainButton:hover,
 button.mainButton:active,
-a.buttonLike.mainButton:hover,
-a.buttonLike.mainButton:active {
+.buttonLike.mainButton:hover,
+.buttonLike.mainButton:active {
   background-color: white;
 
   color: #0078e7;
@@ -110,12 +110,50 @@ pre {
   font-size: 0.9em;
 }
 
+.content {
+  width: 100%;
+}
+.content > * {
+  width: 100%;
+  margin-bottom: 20px;
+}
+.content > *:last-child {
+  margin-bottom: 0px;
+}
+
 .section > * {
   width: 100%;
   margin-bottom: 5px;
 }
 .section > *:last-child {
   margin-bottom: 0;
+}
+
+.subSection > * {
+  width: 100%;
+
+  border: 1px solid #DDD;
+  border-top-width: 0;
+  border-radius: 0;
+}
+.subSection > *:first-child {
+  border-top-width: 1px;
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+}
+.subSection > *:last-child {
+  border-bottom-left-radius: 5px;
+  border-bottom-right-radius: 5px;
+}
+
+.content > p,
+.section > p,
+.subSection > p {
+  padding: 10px;
+}
+.content > p,
+.section > p {
+  text-align: center;
 }
 
 .inputRow {
@@ -146,6 +184,13 @@ pre {
 
 .nowrap {
   white-space: nowrap;
+}
+.description {
+  font-size: .8em;
+  color: #777;
+}
+.hidden {
+  display: none;
 }
 .spacer {
   flex-grow: 1;
@@ -187,33 +232,11 @@ main {
   box-shadow: 0px 1px 3px #DDD;
 }
 
-.content {
-  width: 100%;
-}
-.content > * {
-  width: 100%;
-  margin-bottom: 20px;
-}
-.content > *:last-child {
-  margin-bottom: 0px;
-}
-
-.content > p,
-.section > p {
-  padding: 10px;
-
-  text-align: center;
-}
-
 main .header {
   display: flex;
 }
 main .header a {
   padding: 10px;
-}
-
-.hidden {
-  display: none;
 }
 
 @media only screen and (max-width: 450px) {

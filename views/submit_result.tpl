@@ -14,12 +14,19 @@
     <h1>shh!</h1>
     <div class="section">
       <p>This link will expire in <span class="nowrap">{{ttl}}.</span></p>
-      <pre id="secretLink">{{secret_url}}</pre>
+      <pre id="secretLink">{{service_address}}/secrets/{{secret_id}}</pre>
       <button id="copyButton" class="mainButton" type="button" class="hidden"
               title="Copy link to clipboard">Copy Link</button>
       <p>It will only work once, so don't open it by mistake!</p>
     </div>
-    <p><a href="/">Got another secret?</a></p>
+    % if defined('user_id') and user_id:
+    <div class="subSection">
+      <a class="buttonLike" href="/secrets">Active Secrets</a>
+      <a class="buttonLike" href="/">Got another secret?</a>
+    </div>
+    % else:
+    <a class="buttonLike" href="/">Got another secret?</a>
+    % end
   </div>
   <span class="spacer"></span>
 </main>

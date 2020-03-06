@@ -39,6 +39,9 @@ rebase('base.tpl', title='shh!',
       % end
       <button id="submitButton" class="mainButton">Generate Link</button>
     </form>
+    % if defined('user_id') and user_id:
+    <a class="buttonLike" href="/secrets">Active Secrets</a>
+    % end
   </div>
   <span class="spacer"></span>
 </main>
