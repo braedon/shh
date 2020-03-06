@@ -9,7 +9,7 @@
     <h1>shh!</h1>
     <div class="section">
       % if secrets:
-      <p>Active Secrets</p>
+      <h2>Active Secrets</h2>
       %   for secret in secrets:
       <div class="subSection">
         <pre id="secretLink">{{service_address}}/secrets/{{secret.secret_id}}</pre>

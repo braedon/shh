@@ -20,6 +20,10 @@ h1 {
   text-align: center;
   font-size: 4em;
 }
+h2 {
+  text-align: center;
+  font-size: 1.4em;
+}
 
 a {
   text-decoration: none;
@@ -148,6 +152,7 @@ pre {
 
 .content > p,
 .section > p,
+.section > h2,
 .subSection > p {
   padding: 10px;
 }
