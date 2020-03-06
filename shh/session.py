@@ -46,7 +46,7 @@ class SessionHandler(object):
         self.token_decoder = token_decoder
         self.login_endpoint = login_endpoint
         self.testing_mode = testing_mode
-        # Add prefix to cookies to improve security.
+        # Add prefix to cookies to make them "domain locked" to improve security.
         # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie#Cookie_prefixes
         self.oidc_cookie = OIDC_COOKIE if self.testing_mode else f'__Host-{OIDC_COOKIE}'
         self.session_cookie = SESSION_COOKIE if self.testing_mode else f'__Host-{SESSION_COOKIE}'
@@ -63,7 +63,8 @@ class SessionHandler(object):
         encoded_oidc_state = urlsafe_b64encode(oidc_state.encode('utf-8')).decode('utf-8')
         # TODO: Set `same_site=True` once Bottle supports it
         response.set_cookie(self.oidc_cookie, encoded_oidc_state,
-                            path='/oidc/callback',
+                            # Path must be / since we're using a domain locked cookie
+                            path='/',
                             max_age=OIDC_MAX_AGE, httponly=True,
                             secure=False if self.testing_mode else True)
 
