@@ -26,7 +26,7 @@ class RequiredParamError(ParamParseError):
 
     def __init__(self, param, message=None, **options):
         self.param = param
-        body = '{} is required'.format(param.replace('_', ' ').capitalize())
+        body = 'Missing {}'.format(param.replace('_', ' '))
         if message:
             body += ': {}'.format(message)
         if body[-1] != '.':
@@ -102,11 +102,11 @@ def string_param(*keys, multi=False, enum=None,
             v = v.split(',')
             v = tuple(v)
             if enum is not None and any(i not in enum for i in v):
-                raise InvalidParamError(k, v, 'Must be comma separated values from {}'.format(enum))
+                raise InvalidParamError(k, v, 'Must be comma separated values from {}'.format(','.join(enum)))
 
         else:
             if enum is not None and v not in enum:
-                raise InvalidParamError(k, v, 'Must be a value from {}'.format(enum))
+                raise InvalidParamError(k, v, 'Must be a value from {}'.format(','.join(enum)))
 
         return v
 
@@ -127,7 +127,7 @@ def boolean_param(*keys, enum=None,
         # Allows "boolean" params to also have extra options beyond True and False.
         if enum is not None:
             if v.lower() not in enum:
-                raise InvalidParamError(k, v, 'Must be true, false, or a value from {}'.format(enum))
+                raise InvalidParamError(k, v, 'Must be true, false, or a value from {}'.format(','.join(enum)))
 
             return v
 
@@ -149,7 +149,7 @@ def integer_param(*keys, multi=False, positive=False, enum=None,
             if positive and any(i < 0 for i in v):
                 raise InvalidParamError(k, v, 'Must be comma separated positive integers')
             if enum is not None and any(i not in enum for i in v):
-                raise InvalidParamError(k, v, 'Must be comma separated values from {}'.format(enum))
+                raise InvalidParamError(k, v, 'Must be comma separated values from {}'.format(','.join(enum)))
 
         else:
             if not v.isdecimal():
@@ -158,7 +158,7 @@ def integer_param(*keys, multi=False, positive=False, enum=None,
             if positive and v < 0:
                 raise InvalidParamError(k, v, 'Must be positive')
             if enum is not None and v not in enum:
-                raise InvalidParamError(k, v, 'Must be a value from {}'.format(enum))
+                raise InvalidParamError(k, v, 'Must be a value from {}'.format(','.join(enum)))
 
         return v
 
@@ -181,7 +181,7 @@ def float_param(*keys, multi=False, positive=False, enum=None,
             if positive and any(i < 0 for i in v):
                 raise InvalidParamError(k, v, 'Must be comma separated positive decimals')
             if enum is not None and any(i not in enum for i in v):
-                raise InvalidParamError(k, v, 'Must be comma separated values from {}'.format(enum))
+                raise InvalidParamError(k, v, 'Must be comma separated values from {}'.format(','.join(enum)))
 
         else:
             if not is_float(v):
@@ -190,7 +190,7 @@ def float_param(*keys, multi=False, positive=False, enum=None,
             if positive and v < 0:
                 raise InvalidParamError(k, v, 'Must be positive')
             if enum is not None and v not in enum:
-                raise InvalidParamError(k, v, 'Must be a value from {}'.format(enum))
+                raise InvalidParamError(k, v, 'Must be a value from {}'.format(','.join(enum)))
 
         return v
 
