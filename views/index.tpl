@@ -6,6 +6,7 @@ rebase('base.tpl', title='shh!',
 <main>
   <div class="header">
     % if defined('user_id') and user_id:
+    <a class="buttonLike" href="/secrets">Secrets</a>
     <span class="spacer"></span>
     <a class="buttonLike" href="/logout">Log out</a>
     % else:
@@ -39,9 +40,6 @@ rebase('base.tpl', title='shh!',
       % end
       <button id="submitButton" class="mainButton">Generate Link</button>
     </form>
-    % if defined('user_id') and user_id:
-    <a class="buttonLike" href="/secrets">Active Secrets</a>
-    % end
   </div>
   <span class="spacer"></span>
 </main>

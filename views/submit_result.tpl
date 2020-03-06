@@ -2,6 +2,7 @@
 <main>
   <div class="header">
     % if defined('user_id') and user_id:
+    <a class="buttonLike" href="/secrets">Secrets</a>
     <span class="spacer"></span>
     <a class="buttonLike" href="/logout">Log out</a>
     % else:
@@ -19,14 +20,7 @@
               title="Copy link to clipboard">Copy Link</button>
       <p>It will only work once, so don't open it by mistake!</p>
     </div>
-    % if defined('user_id') and user_id:
-    <div class="subSection">
-      <a class="buttonLike" href="/secrets">Active Secrets</a>
-      <a class="buttonLike" href="/">Got another secret?</a>
-    </div>
-    % else:
     <a class="buttonLike" href="/">Got another secret?</a>
-    % end
   </div>
   <span class="spacer"></span>
 </main>
