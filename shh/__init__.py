@@ -135,7 +135,7 @@ def construct_app(dao, token_decoder,
         #       by the user.
         check_continue_url(continue_url)
 
-        r = requests.post(oidc_token_endpoint,
+        r = requests.post(oidc_token_endpoint, timeout=10,
                           auth=(oidc_client_id, oidc_client_secret),
                           data={'grant_type': 'authorization_code',
                                 'client_id': oidc_client_id,
