@@ -69,7 +69,8 @@ class SessionHandler(object):
                             secure=False if self.testing_mode else True)
 
     def clear_oidc_state(self):
-        response.delete_cookie(self.oidc_cookie, path='/oidc/callback')
+        response.delete_cookie(self.oidc_cookie, path='/', httponly=True,
+                               secure=False if self.testing_mode else True)
 
     def get_oidc_state(self):
         encoded_oidc_state = request.get_cookie(self.oidc_cookie)
@@ -95,7 +96,8 @@ class SessionHandler(object):
                             secure=False if self.testing_mode else True)
 
     def clear_session(self):
-        response.delete_cookie(self.session_cookie, path='/')
+        response.delete_cookie(self.session_cookie, path='/', httponly=True,
+                               secure=False if self.testing_mode else True)
 
     def _get_session(self):
         id_token = request.get_cookie(self.session_cookie)
