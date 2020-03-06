@@ -284,7 +284,6 @@ def construct_app(dao, token_decoder,
         secret = dao.get_secret(secret_id)
 
         if secret is None:
-            # TODO: Can we display this message? Current 404 page doesn't show custom messages
             abort(404, 'Oops, that secret can\'t be found.')
 
         dao.delete_secret(secret_id)
