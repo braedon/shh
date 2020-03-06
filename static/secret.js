@@ -48,4 +48,4 @@ copyButton.addEventListener('click', copyToClipboard);
 
 secret.className = 'hidden';
 showSecretToggle.className = '';
-copyButton.className = '';
+copyButton.className = 'mainButton';

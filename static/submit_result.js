@@ -22,4 +22,4 @@ function copyToClipboard() {
 
 copyButton.addEventListener('click', copyToClipboard);
 
-copyButton.className = '';
+copyButton.className = 'mainButton';
