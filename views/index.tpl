@@ -19,11 +19,11 @@ rebase('base.tpl', title='shh!',
     <p>Share passwords <span class="nowrap">(or other secrets)</span> via expiring <span class="nowrap">one-time links.</span></p>
     <form class="section" action="/secrets" method="POST">
       <input id="smallSecret" type="password" name="secret" autocomplete="off"
-             placeholder="Secret" maxlength=100 required autofocus/>
+             placeholder="Secret" maxlength=100 required autofocus>
       <textarea id="largeSecret" name="secret" class="hidden"
                 autocomplete="off" spellcheck="false" wrap="off"
-                placeholder="Secret" maxlength=2000 required disabled/></textarea>
-      <input name="description" placeholder="Description (optional)" maxlength=100/>
+                placeholder="Secret" maxlength=2000 required disabled></textarea>
+      <input name="description" placeholder="Description (optional)" maxlength=100>
       <div class="inputRow">
         <button id="expandToggle" type="button" class="hidden"
                 title="Expand to text block mode">Expand</button>
@@ -35,7 +35,7 @@ rebase('base.tpl', title='shh!',
         </select>
       </div>
       % if defined('csrf') and csrf:
-      <input name="csrf" type="hidden" value="{{csrf}}" />
+      <input name="csrf" type="hidden" value="{{csrf}}">
       % end
       <button id="submitButton" class="mainButton">Generate Link</button>
     </form>
