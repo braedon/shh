@@ -90,6 +90,20 @@ def construct_app(dao, token_decoder,
     def robots():
         return static_file('robots.txt', root='static')
 
+    # Favicon stuff generated at:
+    # https://favicon.io/favicon-generator/?t=S%21&ff=Raleway&fs=110&fc=%23444&b=rounded&bc=%23F9F9F9
+    @app.get('/favicon.ico')
+    def icon():
+        return static_file('favicon.ico', root='static')
+
+    @app.get('/site.webmanifest')
+    def manifest():
+        return static_file('site.webmanifest', root='static')
+
+    @app.get('/<filename>.png')
+    def root_pngs(filename):
+        return static_file(f'{filename}.png', root='static')
+
     @app.get('/<filename>.js')
     def scripts(filename):
         return static_file(f'{filename}.js', root='static')
