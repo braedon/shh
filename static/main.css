@@ -127,7 +127,7 @@ pre {
 
 .section > * {
   width: 100%;
-  margin-bottom: 5px;
+  margin-bottom: 10px;
 }
 .section > *:last-child {
   margin-bottom: 0;
@@ -140,7 +140,9 @@ pre {
   border-top-width: 0;
   border-radius: 0;
 }
-.subSection > *:first-child {
+.subSection > *:first-child,
+.subSection > #smallSecret,
+.subSection > #largeSecret {
   border-top-width: 1px;
   border-top-left-radius: 5px;
   border-top-right-radius: 5px;
@@ -164,10 +166,6 @@ pre {
 .inputRow {
   display: flex;
   flex-direction: row;
-
-  padding: 0;
-
-  border: none;
 }
 .inputRow > * {
   flex-grow: 1;
@@ -230,7 +228,7 @@ main {
   flex-direction: column;
 
   width: 350px;
-  padding: 30px;
+  padding: 20px;
 
   border: 1px solid #DDD;
   border-radius: 5px;
