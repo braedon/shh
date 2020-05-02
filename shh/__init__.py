@@ -215,6 +215,7 @@ def construct_app(dao, token_decoder,
             id_token_jwt = token_decoder.decode_id_token(id_token)
         except (ValueError, KeyError, InvalidTokenError) as e:
             log.warning('OIDC token endpoint returned invalid response: %(error)s', {'error': e})
+            abort(500)
 
         if 'nonce' not in id_token_jwt:
             log.warning('OIDC token endpoint didn\'t return nonce in token.')
