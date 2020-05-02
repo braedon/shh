@@ -20,7 +20,7 @@
   </head>
   <body>
 % if get('do_indent', True):
-% from shh.misc import indent
+%   from shh.misc import indent
 {{!indent(base, 4)}}
 % else:
 {{!base}}

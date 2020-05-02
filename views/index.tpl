@@ -17,7 +17,7 @@ rebase('base.tpl', title='shh!',
   <span class="spacer"></span>
   <form class="content" action="/secrets" method="POST">
     <h1>shh!</h1>
-    <p>Share passwords <span class="nowrap">(or other secrets)</span> via expiring <span class="nowrap">one-time links.</span></p>
+    <p>Share passwords <span class="nowrap">(or other secrets)</span> via expiring <span class="nowrap">one-time links</span></p>
     <div class="section">
       <fieldset class="subSection">
         <input id="smallSecret" type="password" name="secret" autocomplete="off"

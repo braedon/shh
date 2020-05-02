@@ -1,7 +1,7 @@
 % rebase('base.tpl', title=f'shh! - View Secret', post_scripts=['secret'], do_indent=False)
 <main>
   <span class="spacer"></span>
-  <div class='content'>
+  <div class="content">
     <h1>shh!</h1>
     <div class="section">
       % if defined('description') and description:

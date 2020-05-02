@@ -5,7 +5,7 @@
     <a class="buttonLike" href="/logout">Log out</a>
   </div>
   <span class="spacer"></span>
-  <div class='content'>
+  <div class="content">
     <h1>shh!</h1>
     <div class="section">
       % if secrets:
@@ -23,7 +23,7 @@
       </div>
       %   end
       % else:
-      <p>No active secrets.</p>
+      <p>No active secrets</p>
       % end
     </div>
     <a class="buttonLike" href="/">Got another secret?</a>

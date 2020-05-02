@@ -5,7 +5,7 @@ import textwrap
 from bottle import HTTPResponse, response, template
 from bottle import abort as bottle_abort
 
-ID_LENGTH = 16
+ID_BYTES = 16
 
 
 # Have no text by default, unlike the default bottle abort function
@@ -15,7 +15,7 @@ def abort(code=500, text=None):
 
 # TODO: Should we generate a GUID v4 (fully random) instead?
 def generate_id():
-    return secrets.token_urlsafe(ID_LENGTH)
+    return secrets.token_urlsafe(ID_BYTES)
 
 
 def indent(block, indent=2):
