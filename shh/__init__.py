@@ -305,6 +305,18 @@ def construct_app(dao, token_decoder,
         if secret is None:
             abort(404, 'Oops, that secret can\'t be found.')
 
+        return template('fetch_secret',
+                        description=secret.description,
+                        secret_id=secret_id,
+                        expire_dt=secret.expire_dt)
+
+    @app.post('/secrets/<secret_id>')
+    def post_secret(secret_id):
+        secret = dao.get_secret(secret_id)
+
+        if secret is None:
+            abort(404, 'Oops, that secret can\'t be found.')
+
         dao.delete_secret(secret_id)
 
         return template('secret',

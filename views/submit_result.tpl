@@ -18,7 +18,6 @@
       <pre id="secretLink">{{service_address}}/secrets/{{secret_id}}</pre>
       <button id="copyButton" type="button" class="hidden"
               title="Copy link to clipboard">Copy Link</button>
-      <p>It will only work once, so don't open it by mistake!</p>
     </div>
     <a class="buttonLike" href="/">Got another secret?</a>
   </div>

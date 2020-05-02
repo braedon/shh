@@ -12,7 +12,7 @@
               title="Show Secret">Show Secret</button>
       <button id="copyButton" type="button" class="hidden"
               title="Copy link to clipboard">Copy Secret</button>
-      <p>This link won't work again, so make sure to take note of the secret!</p>
+      <p class="description">This link won't work again, so make sure to take note of the secret!</p>
     </div>
     <a class="buttonLike" href="/">Got a secret?</a>
   </div>
