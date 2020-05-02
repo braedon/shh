@@ -1,10 +1,10 @@
-# bottle==0.12.17
+# bottle==0.13
 # The way Bottle currently handles error doesn't allow logging
 # middleware to log them correctly, so used a patched version.
 # NOTE: This won't override a previously installed version of Bottle,
 #       so remove first with:
 # 		> pip3 uninstall bottle
-git+git://github.com/braedon/bottle@improve-wsgi-error-handling-012#egg=bottle
+git+git://github.com/braedon/bottle@improve-wsgi-error-handling-013#egg=bottle
 click==7.0
 cryptography==2.8 # Used by pyjwt for RSA256
 gevent==1.4.0

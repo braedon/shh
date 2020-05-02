@@ -61,15 +61,14 @@ class SessionHandler(object):
     def set_oidc_data(self, state, nonce, continue_url):
         oidc_data = f'{state}:{nonce}:{continue_url}'
         encoded_oidc_data = urlsafe_b64encode(oidc_data.encode('utf-8')).decode('utf-8')
-        # TODO: Set `same_site=True` once Bottle supports it
-        response.set_cookie(self.oidc_cookie, encoded_oidc_data,
-                            # Path must be / since we're using a domain locked cookie
-                            path='/',
-                            max_age=OIDC_MAX_AGE, httponly=True,
+        # Path must be / since we're using a domain locked cookie
+        response.set_cookie(self.oidc_cookie, encoded_oidc_data, path='/',
+                            maxage=OIDC_MAX_AGE, httponly=True, samesite='lax',
                             secure=False if self.testing_mode else True)
 
     def clear_oidc_data(self):
-        response.delete_cookie(self.oidc_cookie, path='/', httponly=True,
+        response.delete_cookie(self.oidc_cookie, path='/',
+                               httponly=True, samesite='lax',
                                secure=False if self.testing_mode else True)
 
     def get_oidc_data(self):
@@ -89,18 +88,20 @@ class SessionHandler(object):
                 'continue_url': continue_url}
 
     def set_session(self, id_token):
-        # TODO: Set `same_site=True` once Bottle supports it
-        response.set_cookie(self.refresh_session_cookie, 'true',
-                            path='/', httponly=True,  # No max_age - "session" cookie
+        response.set_cookie(self.refresh_session_cookie, 'true', path='/',
+                            httponly=True, samesite='lax',  # No maxage - "session" cookie
                             secure=False if self.testing_mode else True)
         response.set_cookie(self.session_cookie, id_token,
-                            path='/', max_age=SESSION_MAX_AGE, httponly=True,
+                            path='/',
+                            maxage=SESSION_MAX_AGE, httponly=True, samesite='lax',
                             secure=False if self.testing_mode else True)
 
     def clear_session(self):
-        response.delete_cookie(self.session_cookie, path='/', httponly=True,
+        response.delete_cookie(self.session_cookie, path='/',
+                               httponly=True, samesite='lax',
                                secure=False if self.testing_mode else True)
-        response.delete_cookie(self.refresh_session_cookie, path='/', httponly=True,
+        response.delete_cookie(self.refresh_session_cookie, path='/',
+                               httponly=True, samesite='lax',
                                secure=False if self.testing_mode else True)
 
     def _get_session(self):
