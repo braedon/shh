@@ -46,7 +46,8 @@ class UnsetType(object):
 Unset = UnsetType()
 
 
-def param_parser(*keys, default=Unset, empty=Unset, required=False):
+def param_parser(key, *other_keys,
+                 default=Unset, empty=Unset, required=False, strip=False, multi=False):
     """
     Decorator that coverts a parsing function into a full param parser.
 
@@ -55,37 +56,72 @@ def param_parser(*keys, default=Unset, empty=Unset, required=False):
     fails.
 
     The returned param parser function takes a dict of params, and attempts to find and parse a
-    value for one of the `keys` listed. Each key is tried in turn, with the first key present in the
-    params dict used (regardless of its value). If none of the keys are found `default` is returned.
+    value for one of the keys listed. Each key is tried in turn, with the first key present in the
+    params dict used (regardless of its value).
 
-    If a key is found, and its value is an empty string, `empty` is returned. If its value is not
-    empty the parser function is called on the key and value, and the resulting value is returned.
+    If none of the keys are found, `default` is used. If a value is empty, `empty` is used.
 
     If the value is found to be `Unset` (for any reason) and the param is `required`,
-    RequiredParamError is raised. If it is `Unset` because none of the `keys` are found, the first
-    key as used as the required param.
+    RequiredParamError is raised. If it is `Unset` because none of the keys are found, the first
+    key is used as the required param.
+
+    If `strip` is set, whitespace is stripped from the start and end of values before parsing.
+
+    If `multi` is set, an array of sub values is parsed. If `multi` is a string, the value is split
+    by that string, e.g. ','. If it is any other truthy value, `.getall()` is used to get the value
+    of all instances of the key in the params. Empty string sub values are removed, as are sub
+    values that parse to `Unset`. `strip` applies to sub values. `default` and `empty` apply to the
+    param as a whole, so should be arrays. `required` also applies to the param as a whole.
     """
 
     def decorator(parse_func):
 
+        def parse_key(params, k):
+            v = params[k]
+
+            if multi:
+                if isinstance(multi, str):
+                    v = params[k].split(multi)
+                else:
+                    v = params.getall(k)
+
+                if strip:
+                    v = [sv.strip() for sv in v]
+
+                v = [sv for sv in v if sv != '']
+
+                v = [parse_func(k, sv) for sv in v]
+                v = [sv for sv in v if sv is not Unset]
+
+                if not v:
+                    return empty
+
+                return v
+
+            else:
+                v = params[k]
+
+                if strip:
+                    v = v.strip()
+
+                if v == '':
+                    return empty
+
+                return parse_func(k, v)
+
         def wrapper(params):
-            for k in keys:
+            for k in [key, *other_keys]:
                 if k in params:
-                    v = params[k]
+                    v = parse_key(params, k)
 
-                    if v == '':
-                        if required and empty is Unset:
-                            raise RequiredParamError(k)
-                        return empty
+                    if required and v is Unset:
+                        raise RequiredParamError(k)
 
-                    else:
-                        parsed_value = parse_func(k, v)
-                        if required and parsed_value is Unset:
-                            raise RequiredParamError(k)
-                        return parsed_value
+                    return v
 
-            if required and keys and default is Unset:
-                raise RequiredParamError(keys[0])
+            if required and default is Unset:
+                raise RequiredParamError(key)
+
             return default
 
         return wrapper
@@ -93,35 +129,32 @@ def param_parser(*keys, default=Unset, empty=Unset, required=False):
     return decorator
 
 
-def string_param(*keys, multi=False, enum=None,
-                 default=Unset, empty=Unset, required=False):
+def string_param(*keys, default=Unset, empty=Unset, required=False, strip=False, multi=False,
+                 enum=None, min_length=None, max_length=None):
 
-    @param_parser(*keys, default=default, empty=empty, required=required)
+    @param_parser(*keys, default=default, empty=empty, required=required, strip=strip, multi=multi)
     def parse(k, v):
-        if multi:
-            v = v.split(',')
-            v = tuple(v)
-            if enum is not None and any(i not in enum for i in v):
-                raise InvalidParamError(k, v, 'Must be comma separated values from {}'.format(','.join(enum)))
-
-        else:
-            if enum is not None and v not in enum:
-                raise InvalidParamError(k, v, 'Must be a value from {}'.format(','.join(enum)))
+        if enum is not None and v not in enum:
+            raise InvalidParamError(k, v, 'Must be a value from {}'.format(','.join(enum)))
+        if min_length is not None and len(v) < min_length:
+            raise InvalidParamError(k, v, 'Must be at least {} characters'.format(min_length))
+        if max_length is not None and len(v) > max_length:
+            raise InvalidParamError(k, v, 'Must be no more than {} characters'.format(max_length))
 
         return v
 
     return parse
 
 
-def boolean_param(*keys, enum=None,
-                  default=Unset, empty=Unset, required=False):
+def boolean_param(*keys, default=Unset, empty=Unset, required=False, strip=True, multi=False,
+                  enum=None):
 
-    @param_parser(*keys, default=default, empty=empty, required=required)
+    @param_parser(*keys, default=default, empty=empty, required=required, strip=strip, multi=multi)
     def parse(k, v):
-        if isinstance(v, (str,)) and v.lower() in ('true', 't', 'yes', 'y'):
+        if v.lower() in ('true', 't', 'yes', 'y'):
             return True
 
-        if isinstance(v, (str,)) and v.lower() in ('false', 'f', 'no', 'n'):
+        if v.lower() in ('false', 'f', 'no', 'n'):
             return False
 
         # Allows "boolean" params to also have extra options beyond True and False.
@@ -136,76 +169,57 @@ def boolean_param(*keys, enum=None,
     return parse
 
 
-def integer_param(*keys, multi=False, positive=False, enum=None,
-                  default=Unset, empty=Unset, required=False):
+def integer_param(*keys, default=Unset, empty=Unset, required=False, strip=True, multi=False,
+                  positive=False, enum=None):
 
-    @param_parser(*keys, default=default, empty=empty, required=required)
+    @param_parser(*keys, default=default, empty=empty, required=required, strip=strip, multi=multi)
     def parse(k, v):
-        if multi:
-            v = v.split(',')
-            if not all(i.isdecimal() for i in v):
-                raise InvalidParamError(k, v, 'Must be comma separated integers')
-            v = tuple(int(i) for i in v)
-            if positive and any(i < 0 for i in v):
-                raise InvalidParamError(k, v, 'Must be comma separated positive integers')
-            if enum is not None and any(i not in enum for i in v):
-                raise InvalidParamError(k, v, 'Must be comma separated values from {}'.format(','.join(enum)))
-
-        else:
-            if not v.isdecimal():
-                raise InvalidParamError(k, v, 'Must be an integer')
-            v = int(v)
-            if positive and v < 0:
-                raise InvalidParamError(k, v, 'Must be positive')
-            if enum is not None and v not in enum:
-                raise InvalidParamError(k, v, 'Must be a value from {}'.format(','.join(enum)))
+        if not v.isdecimal():
+            raise InvalidParamError(k, v, 'Must be an integer')
+        v = int(v)
+        if positive and v < 0:
+            raise InvalidParamError(k, v, 'Must be positive')
+        if enum is not None and v not in enum:
+            raise InvalidParamError(k, v, 'Must be a value from {}'.format(','.join(enum)))
 
         return v
 
     return parse
 
 
-def float_param(*keys, multi=False, positive=False, enum=None,
-                default=Unset, empty=Unset, required=False):
+def float_param(*keys, default=Unset, empty=Unset, required=False, strip=True, multi=False,
+                positive=False, enum=None):
 
-    @param_parser(*keys, default=default, empty=empty, required=required)
+    @param_parser(*keys, default=default, empty=empty, required=required, strip=strip, multi=multi)
     def parse(k, v):
         def is_float(val):
             return re.match(r'^\d+(\.\d+)?$', val) is not None
 
-        if multi:
-            v = v.split(',')
-            if not all(is_float(i) for i in v):
-                raise InvalidParamError(k, v, 'Must be comma separated decimals')
-            v = tuple(float(i) for i in v)
-            if positive and any(i < 0 for i in v):
-                raise InvalidParamError(k, v, 'Must be comma separated positive decimals')
-            if enum is not None and any(i not in enum for i in v):
-                raise InvalidParamError(k, v, 'Must be comma separated values from {}'.format(','.join(enum)))
-
-        else:
-            if not is_float(v):
-                raise InvalidParamError(k, v, 'Must be a decimal')
-            v = float(v)
-            if positive and v < 0:
-                raise InvalidParamError(k, v, 'Must be positive')
-            if enum is not None and v not in enum:
-                raise InvalidParamError(k, v, 'Must be a value from {}'.format(','.join(enum)))
+        if not is_float(v):
+            raise InvalidParamError(k, v, 'Must be a decimal')
+        v = float(v)
+        if positive and v < 0:
+            raise InvalidParamError(k, v, 'Must be positive')
+        if enum is not None and v not in enum:
+            raise InvalidParamError(k, v, 'Must be a value from {}'.format(','.join(enum)))
 
         return v
 
     return parse
 
 
-def datetime_param(*keys,
-                   default=Unset, empty=Unset, required=False):
+def datetime_param(*keys, default=Unset, empty=Unset, required=False, strip=True, multi=False,
+                   range_end=False):
 
-    @param_parser(*keys, default=default, empty=empty, required=required)
+    @param_parser(*keys, default=default, empty=empty, required=required, strip=strip, multi=multi)
     def parse(k, v):
         try:
-            # Attempt to convert valid date as datetime
+            # If value string is a date, attempt to convert to datetime
             rfc3339.parse_date(v)
-            v = v + 'T00:00:00Z'
+            if range_end:
+                v = v + 'T23:59:59Z'
+            else:
+                v = v + 'T00:00:00Z'
         except ValueError:
             pass
 
