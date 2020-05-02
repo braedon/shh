@@ -45,6 +45,7 @@ class SecurityHeadersPlugin(object):
                 "script-src 'self'",
                 "style-src 'self' https://necolas.github.io https://fonts.googleapis.com",
                 "font-src https://fonts.gstatic.com",
+                "manifest-src 'self'",
                 # Document directives
                 "base-uri 'self'",
                 # Navigation directives
