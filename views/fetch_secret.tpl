@@ -1,7 +1,7 @@
 % rebase('base.tpl', title=f'shh! - View Secret', post_scripts=['fetch_secret'])
 <main>
   <span class="spacer"></span>
-  <form class="content" action="/secrets/{{secret_id}}" method="POST">
+  <form class="content limitWidth" action="/secrets/{{secret_id}}" method="POST">
     <h1>shh!</h1>
     <div class="section">
       % if defined('description') and description:
@@ -15,7 +15,9 @@
       <button class="mainButton">Fetch Secret</button>
       <p class="description">You can only fetch a secret once, so make sure you want it now!</p>
     </div>
-    <a class="buttonLike" href="/">Got a secret?</a>
   </form>
   <span class="spacer"></span>
+  <div class="linkRow">
+    <a href="/">Got a secret?</a>
+  </div>
 </main>

@@ -15,7 +15,7 @@ rebase('base.tpl', title='shh!',
     % end
   </div>
   <span class="spacer"></span>
-  <form class="content" action="/secrets" method="POST">
+  <form class="content limitWidth" action="/secrets" method="POST">
     <h1>shh!</h1>
     <p>Share passwords <span class="nowrap">(or other secrets)</span> via expiring <span class="nowrap">one-time links</span></p>
     <div class="section">

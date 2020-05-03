@@ -11,7 +11,7 @@
     % end
   </div>
   <span class="spacer"></span>
-  <div class="content">
+  <div class="content limitWidth">
     <h1>shh!</h1>
     <div class="section">
       <p>This link will expire in <span class="nowrap">{{ttl}}</span></p>
@@ -19,7 +19,9 @@
       <button id="copyButton" type="button" class="hidden"
               title="Copy link to clipboard">Copy Link</button>
     </div>
-    <a class="buttonLike" href="/">Got another secret?</a>
   </div>
   <span class="spacer"></span>
+  <div class="linkRow">
+    <a href="/">Got another secret?</a>
+  </div>
 </main>

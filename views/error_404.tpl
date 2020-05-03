@@ -8,7 +8,9 @@
     % else:
     <p>Oops, that page doesn't exist</p>
     % end
-    <a class="buttonLike" href="/">Got a secret?</a>
   </div>
   <span class="spacer"></span>
+  <div class="linkRow">
+    <a href="/">Got a secret?</a>
+  </div>
 </main>

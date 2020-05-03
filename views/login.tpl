@@ -1,7 +1,7 @@
 % rebase('base.tpl', title='shh! - Log In')
 <main>
   <span class="spacer"></span>
-  <div class="content">
+  <div class="content limitWidth">
     <h1>shh!</h1>
     <%
     from urllib.parse import urlencode

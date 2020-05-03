@@ -10,7 +10,9 @@
       <p>Oops, something went wrong</p>
       % end
     </div>
-    <a class="buttonLike" href="/">Got a secret?</a>
   </div>
   <span class="spacer"></span>
+  <div class="linkRow">
+    <a href="/">Got a secret?</a>
+  </div>
 </main>
