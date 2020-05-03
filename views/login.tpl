@@ -16,7 +16,14 @@
     qs = urlencode(qs_dict)
     %>
     <p>Logging in enables you to track which secret links you create are still active</p>
-    <a class="buttonLike mainButton" href="{{oidc_auth_endpoint}}?{{qs}}">Log in with {{oidc_name}}</a>
+    <a class="buttonLike mainButton" href="{{oidc_auth_endpoint}}?{{qs}}">
+      Log in with {{oidc_name}}
+    </a>
+    <div class="linkRow">
+      <a href="https://getalias.app/about" target="_blank" rel="noopener noreferrer">
+        What's Alias?
+      </a>
+    </div>
   </div>
   <span class="spacer"></span>
 </main>
