@@ -91,7 +91,7 @@ def construct_app(dao, token_decoder,
         return static_file('robots.txt', root='static')
 
     # Favicon stuff generated at:
-    # https://favicon.io/favicon-generator/?t=S%21&ff=Raleway&fs=110&fc=%23444&b=rounded&bc=%23F9F9F9
+    # https://favicon.io/favicon-generator/?t=s%21&ff=Roboto+Slab&fs=110&fc=%23444&b=rounded&bc=%23F9F9F9
     @app.get('/favicon.ico')
     def icon():
         return static_file('favicon.ico', root='static')
