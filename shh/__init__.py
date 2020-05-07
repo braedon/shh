@@ -111,7 +111,7 @@ def construct_app(dao, token_decoder,
     @app.get('/login')
     def get_login():
         params = parse_params(request.query.decode(),
-                              continue_url=string_param('continue'))
+                              continue_url=string_param('continue', strip=True, max_length=2000))
         continue_url = params.get('continue_url')
         if continue_url:
             check_continue_url(continue_url)
@@ -140,9 +140,9 @@ def construct_app(dao, token_decoder,
 
         # Check state and error before anything else, to make sure nothing's fishy
         params = parse_params(request.query.decode(),
-                              state=string_param('state'),
-                              error=string_param('error'),
-                              error_description=string_param('error_description'))
+                              state=string_param('state', strip=True),
+                              error=string_param('error', strip=True),
+                              error_description=string_param('error_description', strip=True))
 
         # Use 500 rather than "nicer" error if state is missing.
         state = params.get('state')
@@ -181,7 +181,7 @@ def construct_app(dao, token_decoder,
 
         # If there wasn't an error, there should be a code
         params = parse_params(request.query.decode(),
-                              code=string_param('code'))
+                              code=string_param('code', strip=True))
         code = params.get('code')
         # Once again, use 500 rather than a "nicer" error if code is missing
         if not code:
@@ -236,7 +236,7 @@ def construct_app(dao, token_decoder,
     @session_handler.maybe_session(check_csrf=False, maybe_refresh=False)
     def logout():
         params = parse_params(request.query.decode(),
-                              continue_url=string_param('continue'))
+                              continue_url=string_param('continue', strip=True, max_length=2000))
         continue_url = params.get('continue_url')
         if continue_url:
             check_continue_url(continue_url)
@@ -255,18 +255,12 @@ def construct_app(dao, token_decoder,
             user_id = None
 
         params = parse_params(request.forms.decode(),
-                              description=string_param('description'),
-                              secret=string_param('secret', required=True),
+                              description=string_param('description', strip=True, max_length=100),
+                              secret=string_param('secret', required=True, max_length=2000),
                               ttl=string_param('ttl', required=True, enum=VALID_TTLS.keys()))
         description = params.get('description')
         secret = params['secret']
         ttl = params['ttl']
-
-        if description and len(description) > 100:
-            abort(400, 'The description can\'t be longer than 100 characters.')
-
-        if len(secret) > 2000:
-            abort(400, 'The secret can\'t be longer than 2,000 characters.')
 
         now_dt = rfc3339.now()
         secret_id = generate_id()
