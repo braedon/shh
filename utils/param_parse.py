@@ -59,11 +59,13 @@ def param_parser(key, *other_keys,
     value for one of the keys listed. Each key is tried in turn, with the first key present in the
     params dict used (regardless of its value).
 
-    If none of the keys are found, `default` is used. If a value is empty, `empty` is used.
+    If a key is found but the value is empty, `empty` is used. `empty` is `Unset` by default.
 
-    If the value is found to be `Unset` (for any reason) and the param is `required`,
-    RequiredParamError is raised. If it is `Unset` because none of the keys are found, the first
-    key is used as the required param.
+    If none of the keys are found or the value is found to be `Unset`, `default` is used.
+    `default` is `Unset` by default.
+
+    If the value is still found to be `Unset` and the param is `required`, RequiredParamError is
+    raised. If none of the keys were found, the first key is used as the required param.
 
     If `strip` is set, whitespace is stripped from the start and end of values before parsing.
 
@@ -109,20 +111,28 @@ def param_parser(key, *other_keys,
 
                 return parse_func(k, v)
 
-        def wrapper(params):
-            for k in [key, *other_keys]:
+        def parse_keys(params, keys):
+            for k in keys:
                 if k in params:
                     v = parse_key(params, k)
+
+                    if v is Unset:
+                        v = default
 
                     if required and v is Unset:
                         raise RequiredParamError(k)
 
                     return v
 
-            if required and default is Unset:
+            return default
+
+        def wrapper(params):
+            v = parse_keys(params, [key, *other_keys])
+
+            if required and v is Unset:
                 raise RequiredParamError(key)
 
-            return default
+            return v
 
         return wrapper
 
