@@ -31,7 +31,8 @@ VALID_TTLS = {
 def construct_app(dao, token_decoder,
                   service_protocol, service_hostname,
                   service_port, service_path,
-                  oidc_name, oidc_auth_endpoint, oidc_token_endpoint,
+                  oidc_name, oidc_about_url,
+                  oidc_auth_endpoint, oidc_token_endpoint,
                   oidc_client_id, oidc_client_secret,
                   testing_mode,
                   **kwargs):
@@ -124,6 +125,7 @@ def construct_app(dao, token_decoder,
 
         return template('login',
                         oidc_name=oidc_name,
+                        oidc_about_url=oidc_about_url,
                         oidc_auth_endpoint=oidc_auth_endpoint,
                         oidc_client_id=oidc_client_id,
                         oidc_redirect_uri=oidc_redirect_uri,

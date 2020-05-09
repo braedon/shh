@@ -98,6 +98,8 @@ def init(**options):
               help='Name of the OpenID Connect provider to use for login.')
 @click.option('--oidc-iss', required=True,
               help='Issuer string of the OpenID Connect provider.')
+@click.option('--oidc-about-url', required=True,
+              help='URL of an about page for the OpenID Connect provider.')
 @click.option('--oidc-auth-endpoint', required=True,
               help='URL of the authenticaiton endpoint of the OpenID Connect provider.')
 @click.option('--oidc-token-endpoint', required=True,

@@ -20,8 +20,8 @@
       Log in with {{oidc_name}}
     </a>
     <div class="linkRow">
-      <a href="https://getalias.app/about" target="_blank" rel="noopener noreferrer">
-        What's Alias?
+      <a href="{{oidc_about_url}}" target="_blank" rel="noopener noreferrer">
+        What's {{oidc_name}}?
       </a>
     </div>
   </div>
