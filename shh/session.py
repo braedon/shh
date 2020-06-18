@@ -13,8 +13,9 @@ from .misc import abort, set_headers
 log = logging.getLogger(__name__)
 
 
-OIDC_COOKIE = 'shh_oidc'
-OIDC_MAX_AGE = 60 * 10  # 10 minutes
+OIDC_DATA_COOKIE_PREFIX = 'shh_oidc'
+OIDC_DATA_COOKIE_SUFFIX_LENGTH = 5
+OIDC_DATA_MAX_AGE = 60 * 10  # 10 minutes
 SESSION_COOKIE = 'shh_session'
 SESSION_MAX_AGE = 60 * 60 * 24  # 24 hours
 REFRESH_SESSION_COOKIE = 'shh_refresh_session'
@@ -49,7 +50,7 @@ class SessionHandler(object):
         self.testing_mode = testing_mode
         # Add prefix to cookies to make them "domain locked" to improve security.
         # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie#Cookie_prefixes
-        self.oidc_cookie = OIDC_COOKIE if self.testing_mode else f'__Host-{OIDC_COOKIE}'
+        self.oidc_data_cookie_prefix = OIDC_DATA_COOKIE_PREFIX if self.testing_mode else f'__Host-{OIDC_DATA_COOKIE_PREFIX}'
         self.session_cookie = SESSION_COOKIE if self.testing_mode else f'__Host-{SESSION_COOKIE}'
         self.refresh_session_cookie = REFRESH_SESSION_COOKIE if self.testing_mode else f'__Host-{REFRESH_SESSION_COOKIE}'
 
@@ -58,21 +59,33 @@ class SessionHandler(object):
         url_params = {'continue': continue_url}
         redirect(f'/{self.login_endpoint}?{urlencode(url_params)}')
 
+    def oidc_data_cookie(self, state):
+        # If we overrode the same cookie whenever we set OIDC data, any existing OIDC flows would
+        # break whenever a new one was started - not great if the user uses multiple tabs.
+        # Instead, construct a unique cookie name for each new flow. Can generate a lot of different
+        # cookies, but they only last 10 minutes so not too much of an issue.
+        oidc_data_cookie_suffix = state[:OIDC_DATA_COOKIE_SUFFIX_LENGTH]
+        return f'{self.oidc_data_cookie_prefix}-{oidc_data_cookie_suffix}'
+
     def set_oidc_data(self, state, nonce, continue_url):
+        oidc_data_cookie = self.oidc_data_cookie(state)
+
         oidc_data = f'{state}:{nonce}:{continue_url}'
         encoded_oidc_data = urlsafe_b64encode(oidc_data.encode('utf-8')).decode('utf-8')
         # Path must be / since we're using a domain locked cookie
-        response.set_cookie(self.oidc_cookie, encoded_oidc_data, path='/',
-                            maxage=OIDC_MAX_AGE, httponly=True, samesite='lax',
+        response.set_cookie(oidc_data_cookie, encoded_oidc_data, path='/',
+                            maxage=OIDC_DATA_MAX_AGE, httponly=True, samesite='lax',
                             secure=False if self.testing_mode else True)
 
-    def clear_oidc_data(self):
-        response.delete_cookie(self.oidc_cookie, path='/',
+    def clear_oidc_data(self, state):
+        oidc_data_cookie = self.oidc_data_cookie(state)
+        response.delete_cookie(oidc_data_cookie, path='/',
                                httponly=True, samesite='lax',
                                secure=False if self.testing_mode else True)
 
-    def get_oidc_data(self):
-        encoded_oidc_data = request.get_cookie(self.oidc_cookie)
+    def get_oidc_data(self, state):
+        oidc_data_cookie = self.oidc_data_cookie(state)
+        encoded_oidc_data = request.get_cookie(oidc_data_cookie)
         if not encoded_oidc_data:
             return None
 
@@ -91,8 +104,7 @@ class SessionHandler(object):
         response.set_cookie(self.refresh_session_cookie, 'true', path='/',
                             httponly=True, samesite='lax',  # No maxage - "session" cookie
                             secure=False if self.testing_mode else True)
-        response.set_cookie(self.session_cookie, id_token,
-                            path='/',
+        response.set_cookie(self.session_cookie, id_token, path='/',
                             maxage=SESSION_MAX_AGE, httponly=True, samesite='lax',
                             secure=False if self.testing_mode else True)
 

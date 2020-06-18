@@ -6,12 +6,12 @@ import time
 from bottle import Bottle, request, response, static_file, template, redirect
 from datetime import timedelta
 from jwt.exceptions import InvalidTokenError
-from urllib.parse import urlparse, urljoin
+from urllib.parse import urlparse, urljoin, urlencode
 
 from utils.param_parse import parse_params, string_param
 
 from .dao import Secret
-from .misc import abort, html_default_error_hander, generate_id, security_headers
+from .misc import abort, html_default_error_hander, generate_id, hash_urlsafe, security_headers
 from .session import SessionHandler
 
 
@@ -66,6 +66,30 @@ def construct_app(dao, token_decoder,
                             {'continue_url': continue_url})
                 abort(400)
 
+    def construct_oidc_request(*scopes):
+        state = generate_id()
+        nonce = generate_id()
+
+        qs_dict = {
+            'response_type': 'code',
+            'client_id': oidc_client_id,
+            'redirect_uri': oidc_redirect_uri,
+            'scope': ' '.join(scopes),
+            'state': state,
+            # Keep the original nonce a secret, to avoid auth code replay attacks.
+            # If an attacker manages to steal an auth code for a user from the callback URL, they
+            # may be able to construct a fake OIDC data cookie and call the callback URL themselves
+            # (before the user does, consuming the auth code). This would log them in as the user.
+            # However, if they only have the hash of the nonce from the OIDC request url, not the
+            # original nonce value, they can't construct a correct OIDC data cookie and their
+            # request will be rejected.
+            'nonce': hash_urlsafe(nonce),
+        }
+        qs = urlencode(qs_dict)
+        url = f'{oidc_auth_endpoint}?{qs}'
+
+        return state, nonce, url
+
     @app.get('/status')
     def status():
         return 'OK'
@@ -117,8 +141,7 @@ def construct_app(dao, token_decoder,
         if continue_url:
             check_continue_url(continue_url)
 
-        state = generate_id()
-        nonce = generate_id()
+        state, nonce, oidc_login_uri = construct_oidc_request('openid')
 
         # NOTE: The state field works as Login CSRF protection.
         session_handler.set_oidc_data(state, nonce, continue_url or DEFAULT_CONTINUE_URL)
@@ -126,11 +149,7 @@ def construct_app(dao, token_decoder,
         return template('login',
                         oidc_name=oidc_name,
                         oidc_about_url=oidc_about_url,
-                        oidc_auth_endpoint=oidc_auth_endpoint,
-                        oidc_client_id=oidc_client_id,
-                        oidc_redirect_uri=oidc_redirect_uri,
-                        state=state,
-                        nonce=nonce)
+                        oidc_login_uri=oidc_login_uri)
 
     @app.get('/oidc/callback')
     def get_oidc_callback():
@@ -152,17 +171,20 @@ def construct_app(dao, token_decoder,
             log.warning('Received OIDC callback with no state.')
             abort(500)
 
-        oidc_data = session_handler.get_oidc_data()
+        oidc_data = session_handler.get_oidc_data(state)
         if not oidc_data:
             log.warning('Received OIDC callback with no OIDC data cookie.')
             abort(500)
 
-        # If states are present, but don't match, the user may have started two flows in parallel,
-        # completing the first when we're expecting the second. Redirect them back to the login
-        # screen to be nice.
+        # Only part of the state is used when fetching the OIDC data, so still need to check it.
         if state != oidc_data['state']:
             log.warning('Received OIDC callback with mismatching state.')
-            redirect('/login')
+            abort(500)
+
+        # State seems to be OK, so this is a valid response for this request. Drop the OIDC data
+        # so this state can't be used again.
+        # NOTE: This won't take effect if a later error occurs.
+        session_handler.clear_oidc_data(state)
 
         error = params.get('error')
         if error:
@@ -192,8 +214,8 @@ def construct_app(dao, token_decoder,
 
         # Check continue_url before attempting to call the OIDC provider, just in case.
         continue_url = oidc_data['continue_url']
-        # NOTE: we check this again, since the oidc_data cookie isn't signed so could be changed
-        #       by the user.
+        # NOTE: we check this again, since the oidc cookie data isn't signed so could be changed by
+        #       the user agent.
         check_continue_url(continue_url)
 
         r = requests.post(oidc_token_endpoint, timeout=10,
@@ -223,12 +245,11 @@ def construct_app(dao, token_decoder,
             log.warning('OIDC token endpoint didn\'t return nonce in token.')
             abort(500)
 
-        if id_token_jwt['nonce'] != oidc_data['nonce']:
+        if id_token_jwt['nonce'] != hash_urlsafe(oidc_data['nonce']):
             log.warning('OIDC token endpoint returned incorrect nonce in token.')
             abort(500)
 
         session_handler.set_session(id_token)
-        session_handler.clear_oidc_data()
         redirect(continue_url)
 
     # NOTE: The logout endpoint doesn't require CSRF protection, as the session isn't used to
