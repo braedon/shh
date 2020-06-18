@@ -8,17 +8,17 @@ rebase('base.tpl', title='shh!',
     % if defined('user_id') and user_id:
     <a class="buttonLike" href="/secrets">Secrets</a>
     <span class="spacer"></span>
-    <a class="buttonLike" href="/logout">Log out</a>
+    <a class="buttonLike" href="/logout">Log Out</a>
     % else:
     <span class="spacer"></span>
-    <a class="buttonLike" href="/login">Log in</a>
+    <a class="buttonLike" href="/login">Log In</a>
     % end
   </div>
   <span class="spacer"></span>
-  <form class="content limitWidth" action="/secrets" method="POST">
+  <div class="content limitWidth">
     <h1>shh!</h1>
     <p>Share passwords <span class="nowrap">(or other secrets)</span> via expiring <span class="nowrap">one-time links</span></p>
-    <div class="section">
+    <form class="section" action="/secrets" method="POST">
       <fieldset class="subSection">
         <input id="smallSecret" type="password" name="secret" autocomplete="off"
                placeholder="Secret" maxlength=100 required autofocus>
@@ -37,11 +37,11 @@ rebase('base.tpl', title='shh!',
           <option value="1h">1 hour</option>
         </select>
       </div>
-    </div>
-    % if defined('csrf') and csrf:
-    <input name="csrf" type="hidden" value="{{csrf}}">
-    % end
-    <button id="submitButton" class="mainButton">Generate Link</button>
-  </form>
+      % if defined('csrf') and csrf:
+      <input name="csrf" type="hidden" value="{{csrf}}">
+      % end
+      <button id="submitButton" class="mainButton">Generate Link</button>
+    </form>
+  </div>
   <span class="spacer"></span>
 </main>

@@ -3,7 +3,7 @@
 }
 
 h1, h2, h3, p, pre,
-input, textarea, select, button, label, fieldset {
+input, textarea, select, button, fieldset {
   margin: 0;
   padding: 0;
 }
@@ -38,20 +38,62 @@ a:active {
   text-decoration: underline;
 }
 
-.buttonLike {
+a.buttonLike {
   display: block;
+
+  padding: 10px;
+
+  background-color: #F9F9F9;
+  border: 1px solid #DDD;
+  border-radius: 5px;
+
+  color: #444;
+  text-align: center;
 }
-input, textarea, select, button, .buttonLike, pre {
+a.buttonLike:link,
+a.buttonLike:visited {
+  color: #444;
+}
+a.buttonLike:hover,
+a.buttonLike:active {
+  background-color: white;
+
+  color: #0078E7;
+  text-decoration: none;
+}
+
+a.mainButton {
+  display: block;
+
+  padding: 10px;
+
+  background-color: #0078E7;
+  border: 1px solid #0078E7;
+  border-radius: 5px;
+
+  color: white;
+  font-weight: bold;
+  text-align: center;
+}
+a.mainButton:link,
+a.mainButton:visited {
+  color: white;
+}
+a.mainButton:hover,
+a.mainButton:active {
+  background-color: white;
+
+  color: #0078E7;
+  text-decoration: none;
+}
+
+input, textarea, select, button, pre {
   padding: 10px;
 
   border: 1px solid #DDD;
   border-radius: 5px;
 
-  color: inherit;
-}
-.buttonLike:link,
-.buttonLike:visited {
-  color: inherit;
+  color: #444;
 }
 input, textarea {
   background-color: white;
@@ -59,47 +101,32 @@ input, textarea {
 
   overflow: auto;
 }
-select, button, .buttonLike {
-  background-color: inherit;
+select, button {
+  background-color: #F9F9F9;
 
   text-align: center;
 }
 select:hover,
 select:active,
 button:hover,
-button:active,
-.buttonLike:hover,
-.buttonLike:active {
+button:active {
   background-color: white;
+  color: #0078E7;
 
   cursor: pointer;
 }
-.buttonLike:hover,
-.buttonLike:active {
-  text-decoration: none;
-}
-button.mainButton,
-.buttonLike.mainButton {
+button.mainButton {
   background-color: #0078e7;
   border: 1px solid #0078e7;
 
   color: white;
-  font-size: 1.2em;
   font-weight: bold;
 }
-.buttonLike.mainButton:link,
-.buttonLike.mainButton:visited {
-  color: white;
-}
 button.mainButton:hover,
-button.mainButton:active,
-.buttonLike.mainButton:hover,
-.buttonLike.mainButton:active {
+button.mainButton:active {
   background-color: white;
 
   color: #0078e7;
-
-  cursor: pointer;
 }
 
 textarea {
@@ -227,7 +254,7 @@ body {
   justify-content: center;
   align-items: center;
 
-  min-width: 350px;
+  min-width: 300px;
   width: 100%;
   min-height: 100%;
   padding: 10px;
@@ -243,6 +270,7 @@ main {
   display: inline-flex;
   flex-direction: column;
 
+  max-width: 100%;
   width: 300px;
   padding: 20px;
 
@@ -258,7 +286,12 @@ main .header a {
   padding: 10px;
 }
 
-@media only screen and (max-width: 450px) {
+main > .linkRow:last-child {
+  margin-top: 20px;
+}
+
+/* If we're probably on a mobile device, make the main box fill the screen. */
+@media only screen and (max-width: 450px), only screen and (max-height: 550px) {
   body {
     align-items: stretch;
 
@@ -269,6 +302,7 @@ main .header a {
   main {
     flex-grow: 1;
 
+    max-width: unset;
     width: 100%;
 
     border: none;

@@ -4,10 +4,10 @@
     % if defined('user_id') and user_id:
     <a class="buttonLike" href="/secrets">Secrets</a>
     <span class="spacer"></span>
-    <a class="buttonLike" href="/logout">Log out</a>
+    <a class="buttonLike" href="/logout">Log Out</a>
     % else:
     <span class="spacer"></span>
-    <a class="buttonLike" href="/login">Log in</a>
+    <a class="buttonLike" href="/login">Log In</a>
     % end
   </div>
   <span class="spacer"></span>
