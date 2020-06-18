@@ -211,7 +211,6 @@ def worker(**options):
                                charset='utf8mb4',
                                cursorclass=pymysql.cursors.DictCursor)
     shh_dao = ShhDao(connection_pool)
-    shh_dao.create_secret_table()
 
     run_worker(shh_dao, **options)
 
