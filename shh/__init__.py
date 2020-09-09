@@ -27,6 +27,8 @@ VALID_TTLS = {
     '5m': (timedelta(minutes=5), '5 minutes'),
 }
 
+SERVER_READY = True
+
 
 def construct_app(dao, token_decoder,
                   service_protocol, service_hostname,
@@ -90,9 +92,17 @@ def construct_app(dao, token_decoder,
 
         return state, nonce, url
 
-    @app.get('/status')
-    def status():
-        return 'OK'
+    @app.get('/-/live')
+    def live():
+        return 'Live'
+
+    @app.get('/-/ready')
+    def ready():
+        if SERVER_READY:
+            return 'Ready'
+        else:
+            response.status = 503
+            return 'Unavailable'
 
     @app.get('/')
     @session_handler.maybe_session()
